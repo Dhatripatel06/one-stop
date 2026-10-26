@@ -1,0 +1,6 @@
+tests
+docs
+data
+.emulator-data
+firebase-debug.log
+firestore-debug.log

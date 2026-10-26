@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Product images are uploaded through the API (Admin SDK) and served with
+// download-token URLs. Direct client uploads and listing are not allowed.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

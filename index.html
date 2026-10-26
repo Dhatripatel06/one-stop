@@ -1,236 +1,157 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-
   <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <title>
-    ONE STOP SOLUTION (OSS) — Wholesale Catalogue
-  </title>
-
-  <link
-    rel="icon"
-    href="538820.jpg"
-  >
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ONE STOP SOLUTION (OSS) — Wholesale Catalogue</title>
+  <meta name="description" content="ONE STOP SOLUTION (OSS) wholesale catalogue — Every Problem One Solution. Browse products, build your order and confirm on WhatsApp.">
+  <meta name="theme-color" content="#12294d">
+  <meta property="og:title" content="ONE STOP SOLUTION (OSS) — Wholesale Catalogue">
+  <meta property="og:description" content="Every Problem One Solution. Wide Range · Quality · Fast Delivery · Support.">
+  <meta property="og:image" content="538820.jpg">
+  <link rel="icon" href="538820.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
-
 <body>
+  <a class="skip-link" href="#catalogue">Skip to catalogue</a>
+  <div id="site-header"></div>
 
-  <div class="page">
-
-
-    <!-- =========================
-         HEADER
-    ========================= -->
-
-    <header>
-
-      <div class="brand">
-
-        <img
-          src="538820.jpg"
-          alt="OSS"
-        >
-
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
         <div>
+          <span class="eyebrow">Wholesale Catalogue</span>
+          <h1 id="hero-title">Every Problem.<br><em>One Solution.</em></h1>
+          <p class="hero-lead" id="hero-lead">Browse the ONE STOP SOLUTION catalogue, build your order and confirm it with us on WhatsApp.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="#catalogue">Browse catalogue</a>
+            <a class="btn btn-outline btn-lg" id="hero-wa" href="https://wa.me/919499806747" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="color:#1fa855"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg>
+              Chat on WhatsApp
+            </a>
+          </div>
+          <ul class="hero-points" aria-label="Why OSS">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Wide Range</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Quality</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg>Fast Delivery</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>Support</li>
+          </ul>
+        </div>
+        <div class="hero-mosaic" id="hero-mosaic" aria-hidden="true">
+          <div class="hero-tile skeleton"></div><div class="hero-tile skeleton"></div>
+          <div class="hero-tile skeleton"></div><div class="hero-tile skeleton"></div>
+        </div>
+      </div>
+    </section>
 
-          <h1>
-            ONE STOP SOLUTION
-            <span>(OSS)</span>
-          </h1>
+    <!-- Categories -->
+    <section class="section section-tight" id="categories" aria-labelledby="categories-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2 id="categories-title">Shop by category</h2>
+            <p id="categories-sub">Find what you need across our product range.</p>
+          </div>
+        </div>
+        <div class="category-rail" id="category-rail"></div>
+      </div>
+    </section>
 
-          <p>
-            EVERY PROBLEM
-            <b>ONE SOLUTION</b>
-          </p>
+    <!-- Featured / new -->
+    <section class="section section-tight" id="featured" hidden aria-labelledby="featured-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><h2 id="featured-title">Featured products</h2></div>
+          <a class="link-arrow" href="#catalogue">View all</a>
+        </div>
+        <div class="product-grid" id="featured-grid"></div>
+      </div>
+    </section>
 
+    <section class="section section-tight" id="new-arrivals" hidden aria-labelledby="new-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><h2 id="new-title">Recently added</h2><p>The latest products in our catalogue.</p></div>
+        </div>
+        <div class="product-grid" id="new-grid"></div>
+      </div>
+    </section>
+
+    <!-- Catalogue -->
+    <section class="section section-tight" id="catalogue" aria-labelledby="catalogue-title">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="catalogue-title">Full catalogue</h2>
+            <p id="moq-note">Add products to your order and send it to us — we confirm prices and availability on WhatsApp.</p>
+          </div>
         </div>
 
-      </div>
-
-
-      <div class="hero">
-
-        <div class="hero-red">
-          WHOLESALE CATALOGUE
+        <div class="catalog-bar">
+          <div class="chip-row" id="category-chips" role="group" aria-label="Filter by category"></div>
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="sr-only" for="availability-filter">Availability</label>
+              <select class="select" id="availability-filter">
+                <option value="all">All availability</option>
+                <option value="available">Available to order</option>
+                <option value="coming_soon">Coming soon</option>
+                <option value="out_of_stock">Out of stock</option>
+              </select>
+              <label class="sr-only" for="sort">Sort by</label>
+              <select class="select" id="sort">
+                <option value="recommended">Sort: Recommended</option>
+                <option value="name">Name A–Z</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="code">Product code</option>
+              </select>
+            </div>
+            <p class="result-count" id="result-count" aria-live="polite"></p>
+          </div>
         </div>
 
-        <p>
-          Wide Range • Quality • Fast Delivery • Support
-        </p>
-
+        <div class="product-grid" id="product-grid" aria-busy="true"></div>
       </div>
+    </section>
 
-
-      <div class="tools">
-
-        <input
-          id="search"
-          type="search"
-          placeholder="Search product name or code…"
-          autocomplete="off"
-          aria-label="Search products"
-        >
-
-
-        <div
-          id="cats"
-          class="cats"
-        ></div>
-
-
-        <div class="filters">
-
-          <button
-            type="button"
-            data-filter="All"
-            class="active"
-          >
-            All Stock
-          </button>
-
-          <button
-            type="button"
-            data-filter="In Stock"
-          >
-            In Stock
-          </button>
-
-          <button
-            type="button"
-            data-filter="Coming Soon"
-          >
-            Coming Soon
-          </button>
-
-          <button
-            type="button"
-            data-filter="Out of Stock"
-          >
-            Out of Stock
-          </button>
-
+    <!-- How to order -->
+    <section class="section" id="how-to-order" aria-labelledby="how-title">
+      <div class="container">
+        <div class="section-head reveal"><div><h2 id="how-title">How ordering works</h2><p>Simple, transparent and confirmed personally on WhatsApp.</p></div></div>
+        <div class="steps">
+          <div class="step reveal"><h3>Build your order</h3><p>Search by name or product code, choose quantities and add products to your order list.</p></div>
+          <div class="step reveal"><h3>Send your details</h3><p>Submit your order with your name and phone number. You receive an order number straight away.</p></div>
+          <div class="step reveal"><h3>Confirm on WhatsApp</h3><p>We confirm prices, availability and delivery with you, then share your invoice.</p></div>
         </div>
-
       </div>
+    </section>
 
-    </header>
-
-
-    <!-- =========================
-         MAIN
-    ========================= -->
-
-    <main>
-
-      <div
-        class="count"
-        id="count"
-      ></div>
-
-
-      <section
-        id="grid"
-        class="grid"
-        aria-live="polite"
-      ></section>
-
-    </main>
-
-
-    <!-- =========================
-         MULTIPLE ENQUIRY BAR
-    ========================= -->
-
-    <div
-      id="bar"
-      class="enquiry-bar hidden"
-    >
-
-      <div>
-
-        <b id="selectedCount">
-          0
-        </b>
-
-        products selected
-
+    <!-- Contact -->
+    <section class="section section-tight" id="contact" aria-labelledby="contact-title">
+      <div class="container">
+        <div class="info-band reveal">
+          <div>
+            <span class="eyebrow">About OSS</span>
+            <h2 id="contact-title">ONE STOP SOLUTION (OSS)</h2>
+            <p id="about-text">Every Problem One Solution. Browse our wholesale catalogue, add the products you need and send your order — we confirm prices and availability with you directly on WhatsApp.</p>
+          </div>
+          <ul class="contact-list" id="contact-list"></ul>
+        </div>
       </div>
+    </section>
+  </main>
 
-
-      <button
-        type="button"
-        id="multi"
-      >
-        Send Enquiry on WhatsApp
-      </button>
-
-    </div>
-
-
-    <!-- =========================
-         FOOTER
-    ========================= -->
-
-    <footer>
-
-      <img
-        src="538820.jpg"
-        alt="ONE STOP SOLUTION logo"
-      >
-
-
-      <div>
-
-        <b>
-          ONE STOP SOLUTION (OSS)
-        </b>
-
-        <br>
-
-        Every Problem One Solution
-
-        <br>
-
-        WhatsApp: 9499806747
-
-        <br>
-
-        Instagram: @onestopsolution4325
-
-      </div>
-
-    </footer>
-
-
+  <div class="order-bar" id="order-bar" aria-live="polite">
+    <span class="summary" id="order-bar-summary"></span>
+    <a class="btn btn-gold btn-sm" href="order.html">Review order</a>
   </div>
 
-
-  <!-- =========================
-       JAVASCRIPT
-       Firebase imports require
-       type="module"
-  ========================= -->
-
-  <script
-    type="module"
-    src="app.js"
-  ></script>
-
-
+  <div id="site-footer"></div>
+  <script type="module" src="app.js"></script>
 </body>
-
 </html>

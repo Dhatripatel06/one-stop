@@ -1,0 +1,1139 @@
+{
+  "documents": [
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/8TxyLD5p577pPJ8QUx1P",
+      "fields": {
+        "category": {
+          "stringValue": "Home & Kitchen"
+        },
+        "code": {
+          "stringValue": "OSS_040"
+        },
+        "createdAt": {
+          "timestampValue": "2026-09-23T08:08:51.666Z"
+        },
+        "updatedAt": {
+          "timestampValue": "2026-10-01T13:53:19.082Z"
+        },
+        "name": {
+          "stringValue": "SQUARE BATHROOM MAT"
+        },
+        "image": {
+          "stringValue": "https://i.ibb.co/chBWJN2V/IMG-20261001-WA0016.jpg"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-23T08:08:51.724553Z",
+      "updateTime": "2026-10-01T13:53:19.116092Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_001",
+      "fields": {
+        "updatedAt": {
+          "timestampValue": "2026-09-23T07:46:31.866Z"
+        },
+        "code": {
+          "stringValue": "OSS_001"
+        },
+        "category": {
+          "stringValue": "Bathroom Accessories"
+        },
+        "name": {
+          "stringValue": "DOUBLE GRID SOAP BOX"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "image": {
+          "stringValue": "OSS_001.jpg"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T16:24:55.053015Z",
+      "updateTime": "2026-09-23T07:46:31.899575Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_002",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        },
+        "image": {
+          "stringValue": "OSS_002.jpg"
+        },
+        "name": {
+          "stringValue": "MINI POPCORN MAKER"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_002"
+        }
+      },
+      "createTime": "2026-09-18T19:17:26.957512Z",
+      "updateTime": "2026-09-18T19:17:26.957512Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_003",
+      "fields": {
+        "name": {
+          "stringValue": "2L MOTIVATIONAL WATTER BOTTLE"
+        },
+        "image": {
+          "stringValue": "OSS_003.jpg"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "code": {
+          "stringValue": "OSS_003"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Water Bottle"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T19:17:27.128224Z",
+      "updateTime": "2026-09-18T19:17:27.128224Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_004",
+      "fields": {
+        "name": {
+          "stringValue": "5M OUTDOOR CLOTHESLINE"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        },
+        "image": {
+          "stringValue": "OSS_004.jpg"
+        },
+        "code": {
+          "stringValue": "OSS_004"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T19:17:27.373498Z",
+      "updateTime": "2026-09-18T19:17:27.373498Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_005",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "name": {
+          "stringValue": "10M OUTDOOR CLOTHESLINE"
+        },
+        "image": {
+          "stringValue": "OSS_005.jpg"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_005"
+        }
+      },
+      "createTime": "2026-09-18T19:17:27.577036Z",
+      "updateTime": "2026-09-18T19:17:27.577036Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_006",
+      "fields": {
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_006.jpg"
+        },
+        "name": {
+          "stringValue": "48PCS CAR CONTAINER"
+        },
+        "category": {
+          "stringValue": "Toys"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "code": {
+          "stringValue": "OSS_006"
+        }
+      },
+      "createTime": "2026-09-18T19:17:27.695101Z",
+      "updateTime": "2026-09-18T19:17:27.695101Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_007",
+      "fields": {
+        "image": {
+          "stringValue": "OSS_007.jpg"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "3PCS MOTIVATION WATER BOTTLE"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Water Bottle"
+        },
+        "code": {
+          "stringValue": "OSS_007"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:27.837536Z",
+      "updateTime": "2026-09-18T19:17:27.837536Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_008",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "image": {
+          "stringValue": "OSS_008.webp"
+        },
+        "name": {
+          "stringValue": "HOT AND COLD DORI BOTTLE"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Water Bottle"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_008"
+        }
+      },
+      "createTime": "2026-09-18T19:17:27.969624Z",
+      "updateTime": "2026-09-18T19:17:27.969624Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_009",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_009.jpg"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "1000ML STEEL WATER BOTTLE"
+        },
+        "category": {
+          "stringValue": "Water Bottle"
+        },
+        "code": {
+          "stringValue": "OSS_009"
+        }
+      },
+      "createTime": "2026-09-18T19:17:28.146022Z",
+      "updateTime": "2026-09-18T19:17:28.146022Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_010",
+      "fields": {
+        "name": {
+          "stringValue": "VACCUM FLASK SET WITH 3 CUPS"
+        },
+        "image": {
+          "stringValue": "OSS_010.jpg"
+        },
+        "code": {
+          "stringValue": "OSS_010"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        }
+      },
+      "createTime": "2026-09-18T19:17:28.384477Z",
+      "updateTime": "2026-09-18T19:17:28.384477Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_011",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_011.webp"
+        },
+        "name": {
+          "stringValue": "PLUG MOSQUITO KILLER LAMP"
+        },
+        "category": {
+          "stringValue": "Electric & Smart Gadgets"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_011"
+        }
+      },
+      "createTime": "2026-09-18T19:17:28.515729Z",
+      "updateTime": "2026-09-18T19:17:28.515729Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_012",
+      "fields": {
+        "category": {
+          "stringValue": "Electric & Smart Gadgets"
+        },
+        "name": {
+          "stringValue": "ELECTRIC GAS LIGHTER"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "image": {
+          "stringValue": "OSS_012.jpg"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_012"
+        }
+      },
+      "createTime": "2026-09-18T19:17:28.703096Z",
+      "updateTime": "2026-09-18T19:17:28.703096Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_013",
+      "fields": {
+        "name": {
+          "stringValue": "PORTABLE CAR AIR MATTRESS"
+        },
+        "category": {
+          "stringValue": "Car Accessories"
+        },
+        "image": {
+          "stringValue": "OSS_013.webp"
+        },
+        "code": {
+          "stringValue": "OSS_013"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T19:17:28.838574Z",
+      "updateTime": "2026-09-18T19:17:28.838574Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_014",
+      "fields": {
+        "name": {
+          "stringValue": "SOLAR RECHARGEABLE LED FLOOD LIGHT"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_014.jpg"
+        },
+        "code": {
+          "stringValue": "OSS_014"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "category": {
+          "stringValue": "Electric & Smart Gadgets"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T19:17:28.941865Z",
+      "updateTime": "2026-09-18T19:17:28.941865Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_015",
+      "fields": {
+        "code": {
+          "stringValue": "OSS_015"
+        },
+        "category": {
+          "stringValue": "Tools And Hardware"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "ANTI SLIP TAPE WITH GLOW IN DARK STRIPE"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_015.jpg"
+        }
+      },
+      "createTime": "2026-09-18T19:17:29.055344Z",
+      "updateTime": "2026-09-18T19:17:29.055344Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_016",
+      "fields": {
+        "name": {
+          "stringValue": "PORTABLE INFLATABLE BED"
+        },
+        "category": {
+          "stringValue": "Folding Furniture"
+        },
+        "image": {
+          "stringValue": "OSS_016.webp"
+        },
+        "code": {
+          "stringValue": "OSS_016"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:29.183188Z",
+      "updateTime": "2026-09-18T19:17:29.183188Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_017",
+      "fields": {
+        "category": {
+          "stringValue": "Car Accessories"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_017"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_017.jpg"
+        },
+        "name": {
+          "stringValue": "4PCS MAGNETIC CAR WINDOW CURTAIN"
+        }
+      },
+      "createTime": "2026-09-18T19:17:29.383849Z",
+      "updateTime": "2026-09-18T19:17:29.383849Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_018",
+      "fields": {
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_018.jpg"
+        },
+        "name": {
+          "stringValue": "CLOTH DRYING ROPE WITH 12 CLIPS"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_018"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        }
+      },
+      "createTime": "2026-09-18T19:17:29.520398Z",
+      "updateTime": "2026-09-18T19:17:29.520398Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_019",
+      "fields": {
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_019.jpg"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "PORTABLE MESH NEBULIZER MACHINE"
+        },
+        "category": {
+          "stringValue": "Health & Personal Care"
+        },
+        "code": {
+          "stringValue": "OSS_019"
+        }
+      },
+      "createTime": "2026-09-18T19:17:29.699910Z",
+      "updateTime": "2026-09-18T19:17:29.699910Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_020",
+      "fields": {
+        "code": {
+          "stringValue": "OSS_020"
+        },
+        "category": {
+          "stringValue": "Smart Stationery"
+        },
+        "name": {
+          "stringValue": "30PCS SELF ADHESIVE TRANSPARENT BOOK COVER"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_020.webp"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:29.910496Z",
+      "updateTime": "2026-09-18T19:17:29.910496Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_021",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "7 INCH MOVING SAND ART"
+        },
+        "image": {
+          "stringValue": "OSS_021.jpg"
+        },
+        "category": {
+          "stringValue": "Gifts & Decor"
+        },
+        "code": {
+          "stringValue": "OSS_021"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.034145Z",
+      "updateTime": "2026-09-18T19:17:30.034145Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_022",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "image": {
+          "stringValue": "OSS_022.webp"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "ALL IN ONE 60W USB FAST CHARGING TRAVEL DATA CABLE SET"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Smart Gadgets"
+        },
+        "code": {
+          "stringValue": "OSS_022"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.168789Z",
+      "updateTime": "2026-09-18T19:17:30.168789Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_023",
+      "fields": {
+        "name": {
+          "stringValue": "PORTABLE FOLDING CHAIR"
+        },
+        "image": {
+          "stringValue": "OSS_023.jpg"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Folding Furniture"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_023"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.311971Z",
+      "updateTime": "2026-09-18T19:17:30.311971Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_024",
+      "fields": {
+        "name": {
+          "stringValue": "SLIM FLOOR WIPER MOP WITH SILICONE BLADE & TELESCOPIC HANDLE"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_024.webp"
+        },
+        "code": {
+          "stringValue": "OSS_024"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "category": {
+          "stringValue": "Multipurpose Cleaning Tool"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.432574Z",
+      "updateTime": "2026-09-18T19:17:30.432574Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_025",
+      "fields": {
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_025.jpg"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "ANTI VIBRATION PADS"
+        },
+        "category": {
+          "stringValue": "Smart Gadgets"
+        },
+        "code": {
+          "stringValue": "OSS_025"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.601523Z",
+      "updateTime": "2026-09-18T19:17:30.601523Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_026",
+      "fields": {
+        "code": {
+          "stringValue": "OSS_026"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "DANCING JELLYFISH TOY WITH MUSIC & MOVEMENT"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Toys"
+        },
+        "image": {
+          "stringValue": "OSS_026.jpg"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.703421Z",
+      "updateTime": "2026-09-18T19:17:30.703421Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_027",
+      "fields": {
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_027"
+        },
+        "image": {
+          "stringValue": "OSS_027.jpg"
+        },
+        "category": {
+          "stringValue": "Mobile Accessories"
+        },
+        "name": {
+          "stringValue": "360°METAL DESKTOP MOBILE PHONE STAND"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.832748Z",
+      "updateTime": "2026-09-18T19:17:30.832748Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_028",
+      "fields": {
+        "name": {
+          "stringValue": "ELECTRIC WATER HOT BAG"
+        },
+        "category": {
+          "stringValue": "Health & Personal Care"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_028.jpg"
+        },
+        "code": {
+          "stringValue": "OSS_028"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:30.991215Z",
+      "updateTime": "2026-09-18T19:17:30.991215Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_029",
+      "fields": {
+        "name": {
+          "stringValue": "2.5×6 NON ADJUSTABLE FOLDING BED"
+        },
+        "image": {
+          "stringValue": "OSS_029.jpg"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "code": {
+          "stringValue": "OSS_029"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Folding Furniture"
+        }
+      },
+      "createTime": "2026-09-18T19:17:31.107912Z",
+      "updateTime": "2026-09-18T19:17:31.107912Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_030",
+      "fields": {
+        "code": {
+          "stringValue": "OSS_030"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Folding Furniture"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "name": {
+          "stringValue": "2.5×6 ADJUSTABLE FOLDING BED"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_030.jpg"
+        }
+      },
+      "createTime": "2026-09-18T19:17:31.211563Z",
+      "updateTime": "2026-09-18T19:17:31.211563Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_031",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "code": {
+          "stringValue": "OSS_031"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Water Bottle"
+        },
+        "name": {
+          "stringValue": "HOT & COLD 1000ML STEEL WATER BOTTLE"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_031.jpg"
+        }
+      },
+      "createTime": "2026-09-18T19:17:31.300765Z",
+      "updateTime": "2026-09-18T19:17:31.300765Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_032",
+      "fields": {
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "code": {
+          "stringValue": "OSS_032"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Car Accessories"
+        },
+        "name": {
+          "stringValue": "2PCS HD VISION DRIVING GLASSES"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_032.jpg"
+        }
+      },
+      "createTime": "2026-09-18T19:17:31.568342Z",
+      "updateTime": "2026-09-18T19:17:31.568342Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_033",
+      "fields": {
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_033"
+        },
+        "image": {
+          "stringValue": "OSS_033.jpg"
+        },
+        "name": {
+          "stringValue": "PORTABLE 2 IN 1 CAMPING GAS STOVE"
+        },
+        "category": {
+          "stringValue": "Travel Accessories"
+        }
+      },
+      "createTime": "2026-09-18T19:17:31.707769Z",
+      "updateTime": "2026-09-18T19:17:31.707769Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_034",
+      "fields": {
+        "image": {
+          "stringValue": "OSS_034.jpg"
+        },
+        "name": {
+          "stringValue": "ELECTRIC KAPOOR DANI WITH NIGHT LAMP"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_034"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "category": {
+          "stringValue": "Gifts & Decor"
+        }
+      },
+      "createTime": "2026-09-18T19:17:31.899011Z",
+      "updateTime": "2026-09-18T19:17:31.899011Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_035",
+      "fields": {
+        "updatedAt": {
+          "timestampValue": "2026-10-01T13:55:39.186Z"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "code": {
+          "stringValue": "OSS_035"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "image": {
+          "stringValue": "OSS_035.jpg"
+        },
+        "name": {
+          "stringValue": "WATER-ABSORBING RUBBER DOORMAT"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:32.107912Z",
+      "updateTime": "2026-10-01T13:55:39.225276Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_036",
+      "fields": {
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "code": {
+          "stringValue": "OSS_036"
+        },
+        "image": {
+          "stringValue": "OSS_036.jpg"
+        },
+        "category": {
+          "stringValue": "Smart Stationery"
+        },
+        "name": {
+          "stringValue": "MAGIC PRACTICE COPYBOOK"
+        }
+      },
+      "createTime": "2026-09-18T19:17:32.251975Z",
+      "updateTime": "2026-09-18T19:17:32.251975Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_037",
+      "fields": {
+        "category": {
+          "stringValue": "Multipurpose Cleaning Cloth"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "image": {
+          "stringValue": "OSS_037.jpg"
+        },
+        "code": {
+          "stringValue": "OSS_037"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "name": {
+          "stringValue": "40×40 MICROFIBER CLOTH (ONLY YELLOW)"
+        }
+      },
+      "createTime": "2026-09-18T19:17:32.361657Z",
+      "updateTime": "2026-09-18T19:17:32.361657Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_038",
+      "fields": {
+        "image": {
+          "stringValue": "OSS_038.jpg"
+        },
+        "stock": {
+          "stringValue": "In Stock"
+        },
+        "updatedAt": {
+          "timestampValue": "2026-09-22T18:46:49.123Z"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "name": {
+          "stringValue": "SELF ADHESIVE DOOR BOTTOM SEALING STRIP GUARD"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "category": {
+          "stringValue": "Home & Kitchen"
+        },
+        "code": {
+          "stringValue": "OSS_038"
+        }
+      },
+      "createTime": "2026-09-19T13:43:51.769752Z",
+      "updateTime": "2026-09-22T18:46:49.161388Z"
+    },
+    {
+      "name": "projects/oss-digital-catalog/databases/(default)/documents/products/OSS_039",
+      "fields": {
+        "code": {
+          "stringValue": "OSS_039"
+        },
+        "status": {
+          "stringValue": "In Stock"
+        },
+        "stock": {
+          "stringValue": "Coming Soon"
+        },
+        "updatedAt": {
+          "timestampValue": "2026-10-01T13:55:28.659Z"
+        },
+        "name": {
+          "stringValue": "COMPUTER SHORTCUT KEYBOARD MAT"
+        },
+        "image": {
+          "stringValue": "https://i.ibb.co/Rkw8VjGm/51-Qi23ht-Cf-L-AC-UF1000-1000-QL80-FMwebp.webp"
+        },
+        "moq": {
+          "stringValue": "₹500 Minimum Order Quantity (MOQ)"
+        },
+        "category": {
+          "stringValue": "Smart Gadgets"
+        }
+      },
+      "createTime": "2026-09-22T09:43:56.148704Z",
+      "updateTime": "2026-10-01T13:55:28.694513Z"
+    }
+  ]
+}

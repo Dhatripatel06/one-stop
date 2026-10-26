@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Product — ONE STOP SOLUTION (OSS)</title>
+  <meta name="theme-color" content="#12294d">
+  <link rel="icon" href="538820.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div id="site-header"></div>
+
+  <main id="main" class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb" id="breadcrumb">
+      <a href="index.html">Home</a><span aria-hidden="true">/</span><a href="index.html#catalogue">Catalogue</a>
+    </nav>
+
+    <div id="product-root" aria-busy="true">
+      <div class="pdp">
+        <div class="skeleton-card"><div class="s-img"></div></div>
+        <div class="skeleton-card"><div class="s-line"></div><div class="s-line" style="width:70%"></div><div class="s-line" style="width:40%"></div></div>
+      </div>
+    </div>
+
+    <section class="section" id="related" hidden aria-labelledby="related-title">
+      <div class="section-head"><h2 id="related-title">More in this category</h2></div>
+      <div class="product-grid" id="related-grid"></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script type="module" src="js/product-page.js"></script>
+</body>
+</html>
