@@ -266,10 +266,6 @@ function renderSuccess(order) {
       <section class="success-hero" aria-labelledby="success-title">
         <div class="tick">${icon.check}</div>
         <h1 id="success-title">Thank you — your order is saved</h1>
-        <div class="order-ref">
-          <span class="order-ref-label">Your order number is</span>
-          <span class="order-no-row"><span class="order-no">${escapeHtml(order.orderNo)}</span><button class="copy-btn" type="button" id="copy-order" aria-label="Copy order number">${icon.copy}<span>Copy</span></button></span>
-        </div>
         <div class="success-status">
           <span class="status-chip">Status: Pending confirmation</span>
           <p>We will confirm prices, availability and delivery with you. To speed things up, send your order to us on WhatsApp.</p>
@@ -279,14 +275,21 @@ function renderSuccess(order) {
           <a class="btn btn-outline btn-lg" href="index.html#catalogue">Continue browsing</a>
         </div>
       </section>
-      <section class="panel" aria-labelledby="summary-title">
-        <h2 id="summary-title">Order ${escapeHtml(order.orderNo)} <span class="field-hint">${order.items.length} product${order.items.length === 1 ? "" : "s"}</span></h2>
-        ${order.items.map(item => `
-          <div class="line-item line-item--receipt">
-            <div><h3>${escapeHtml(displayName(item.name))}</h3><p class="meta">${escapeHtml(item.sku)} · Qty ${item.qty}${item.unitPrice !== null ? ` · ${money(item.unitPrice)} each` : " · Price to be confirmed"}</p></div>
-            <span class="line-total">${item.total !== null ? money(item.total) : "—"}</span>
-          </div>`).join("")}
-        ${total !== null && total !== undefined ? `<dl class="totals stack"><div class="grand"><dt>Order total</dt><dd>${money(total)}</dd></div></dl>` : `<p class="notice stack">Prices will be confirmed with you before your invoice is issued.</p>`}
+      <section class="receipt" aria-labelledby="summary-title">
+        <div class="receipt-head"><img src="538820.jpg" alt="" width="48" height="48"><strong>${escapeHtml(business.businessName)}</strong><span>${escapeHtml(business.tagline || "")}</span></div>
+        <div class="order-ref">
+          <span class="order-ref-label">Your order number is</span>
+          <span class="order-no-row"><span class="order-no">${escapeHtml(order.orderNo)}</span><button class="copy-btn" type="button" id="copy-order" aria-label="Copy order number">${icon.copy}<span>Copy</span></button></span>
+        </div>
+        <div class="receipt-items">
+          <h2 id="summary-title"><span>Order ${escapeHtml(order.orderNo)}</span><span>${order.items.length} product${order.items.length === 1 ? "" : "s"}</span></h2>
+          ${order.items.map(item => `
+            <div class="line-item">
+              <div><h3>${escapeHtml(displayName(item.name))}</h3><p class="meta">${escapeHtml(item.sku)} · Qty ${item.qty}${item.unitPrice !== null ? ` · ${money(item.unitPrice)} each` : " · Price to be confirmed"}</p></div>
+              <span class="line-total">${item.total !== null ? money(item.total) : "—"}</span>
+            </div>`).join("")}
+        </div>
+        ${total !== null && total !== undefined ? `<dl class="totals stack"><div class="grand"><dt>Order total</dt><dd>${money(total)}</dd></div></dl>` : `<p class="notice">Prices will be confirmed with you before your invoice is issued.</p>`}
       </section>
     </div>`;
 

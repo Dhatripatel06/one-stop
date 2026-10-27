@@ -39,7 +39,7 @@ function render() {
   $("#product-root").setAttribute("aria-busy", "false");
   $("#product-root").innerHTML = `
     <div class="pdp">
-      <div class="gallery">
+      <div class="gallery${images.length > 1 ? " has-thumbs" : ""}">
         <div class="gallery-main" id="gallery-main">
           <img src="${escapeHtml(imageUrl(images[0], 1200))}" alt="${escapeHtml(name)}" width="800" height="800" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
         </div>
@@ -50,10 +50,15 @@ function render() {
       </div>
 
       <div class="pdp-info">
-        <div class="pdp-meta"><span class="sku-pill">${escapeHtml(product.sku)}</span><span>${escapeHtml(product.categoryName)}${product.subcategoryName ? ` · ${escapeHtml(product.subcategoryName)}` : ""}</span></div>
+        <div class="pdp-meta"><a href="index.html?category=${encodeURIComponent(product.categoryId)}#catalogue">${escapeHtml(product.categoryName)}</a>${product.subcategoryName ? `<span aria-hidden="true">/</span><span>${escapeHtml(product.subcategoryName)}</span>` : ""}</div>
         <h1>${escapeHtml(name)}</h1>
+        <dl class="pdp-facts">
+          <div><dt>Product code</dt><dd class="sku-pill">${escapeHtml(product.sku)}</dd></div>
+          <div><dt>Minimum order</dt><dd>${min} ${escapeHtml(product.unit || "pcs")}</dd></div>
+          <div><dt>Availability</dt><dd>${badgeHtml(product.availability)}</dd></div>
+        </dl>
         <div class="card-price pdp-price">${priceHtml(product)}</div>
-        <div class="pdp-status">${badgeHtml(product.availability)}<span class="field-hint">${availabilityText(product)}</span></div>
+        <p class="pdp-status">${availabilityText(product)}</p>
 
         <div class="pdp-panel">
           ${product.orderable ? `

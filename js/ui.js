@@ -34,6 +34,7 @@ export const icon = {
   phone: path('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/>'),
   instagram: path('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>'),
   info: path('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  plus: path('<path d="M12 5v14M5 12h14"/>'),
   copy: path('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>'),
   whatsapp: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.4.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>`
 };
@@ -119,17 +120,17 @@ export function stepperHtml(sku, qty, min = 1, { large = false, label = "Quantit
 
 export function cardActionsHtml(product, business) {
   const qty = cart.qty(product.sku);
-  const wa = `<a class="btn btn-wa btn-sm btn-icon" href="${waUrl(business.whatsapp, productEnquiryMessage(product, business))}" target="_blank" rel="noopener" aria-label="Ask about ${escapeHtml(displayName(product.name))} on WhatsApp">${icon.whatsapp}</a>`;
+  const wa = `<a class="btn btn-outline btn-sm btn-icon btn-wa-outline" href="${waUrl(business.whatsapp, productEnquiryMessage(product, business))}" target="_blank" rel="noopener" aria-label="Ask about ${escapeHtml(displayName(product.name))} on WhatsApp">${icon.whatsapp}</a>`;
   if (!product.orderable) {
     return `<button type="button" class="btn btn-outline btn-sm" disabled>${product.availability === "coming_soon" ? "Coming soon" : "Unavailable"}</button>${wa}`;
   }
   if (qty > 0) return `${stepperHtml(product.sku, qty, product.minQty, { label: `quantity of ${displayName(product.name)}` })}${wa}`;
-  return `<button type="button" class="btn btn-primary btn-sm" data-add="${escapeHtml(product.sku)}">${icon.bag}<span>Add</span></button>${wa}`;
+  return `<button type="button" class="btn btn-primary btn-sm" data-add="${escapeHtml(product.sku)}">${icon.plus}<span>Add to order</span></button>${wa}`;
 }
 
 export function productCardHtml(product, business = DEFAULT_BUSINESS) {
   const name = displayName(product.name);
-  const minNote = product.minQty > 1 ? `Min. order ${product.minQty} ${escapeHtml(product.unit || "pcs")}` : "";
+  const moq = product.minQty > 1 ? `<span class="moq">MOQ ${product.minQty} ${escapeHtml(product.unit || "pcs")}</span>` : "";
   return `
     <article class="card" data-sku="${escapeHtml(product.sku)}">
       <a class="card-media" href="${productUrl(product)}" tabindex="-1" aria-hidden="true">
@@ -137,10 +138,9 @@ export function productCardHtml(product, business = DEFAULT_BUSINESS) {
         ${product.availability !== "in_stock" ? badgeHtml(product.availability) : ""}
       </a>
       <div class="card-body">
-        <div class="card-meta"><span class="sku">${escapeHtml(product.sku)}</span><span class="cat">${escapeHtml(product.categoryName)}</span></div>
+        <div class="card-meta"><span class="cat">${escapeHtml(product.categoryName)}</span><span class="sku">${escapeHtml(product.sku)}</span></div>
         <h3 class="card-title"><a href="${productUrl(product)}">${escapeHtml(name)}</a></h3>
-        <div class="card-price">${priceHtml(product)}</div>
-        ${minNote ? `<div class="card-note">${minNote}</div>` : ""}
+        <div class="card-price">${priceHtml(product)}${moq}</div>
         <div class="card-actions" data-actions="${escapeHtml(product.sku)}">${cardActionsHtml(product, business)}</div>
       </div>
     </article>`;
@@ -225,7 +225,7 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
     header.outerHTML = `
       <div class="topbar">
         <div class="container">
-          <span class="topbar-msg">${escapeHtml(business.tagline)} · Wholesale catalogue</span>
+          <span class="topbar-msg">${escapeHtml(business.tagline)}</span>
           <div class="topbar-links">
             <a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">${icon.whatsapp}<span><span class="sr-only">WhatsApp </span>${escapeHtml(phoneDisplay)}</span></a>
             <a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">${icon.instagram}<span><span class="sr-only">Instagram </span>@${escapeHtml(business.instagram)}</span></a>
@@ -235,23 +235,23 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
       <header class="site-header" id="site-header">
         <div class="container header-inner">
           <a class="brand" href="index.html" aria-label="${escapeHtml(business.businessName)} home">
-            <img src="538820.jpg" alt="" width="46" height="46">
-            <span class="brand-name"><strong>ONE STOP SOLUTION</strong><span>Every Problem · One Solution</span></span>
+            <img src="538820.jpg" alt="" width="44" height="44">
+            <span class="brand-name"><strong>One Stop Solution</strong><span>Wholesale catalogue</span></span>
           </a>
-          <form class="header-search" role="search" action="index.html#catalogue">
-            ${icon.search}
-            <label class="sr-only" for="site-search">Search products</label>
-            <input id="site-search" name="q" type="search" placeholder="Search products or codes, e.g. OSS_014" autocomplete="off">
-          </form>
           <nav class="main-nav" id="main-nav" aria-label="Main">
             <a href="index.html#catalogue" ${active === "catalogue" ? 'aria-current="page"' : ""}>Catalogue</a>
             <a href="index.html#categories">Categories</a>
             <a href="index.html#how-to-order">How to order</a>
             <a href="index.html#contact">Contact</a>
           </nav>
+          <form class="header-search" role="search" action="index.html#catalogue">
+            ${icon.search}
+            <label class="sr-only" for="site-search">Search products</label>
+            <input id="site-search" name="q" type="search" placeholder="Search name or code" autocomplete="off">
+          </form>
           <div class="header-actions">
-            <a class="btn btn-outline btn-icon cart-link" href="order.html" aria-label="Your order">
-              ${icon.bag}<span class="cart-count" data-cart-count hidden>0</span>
+            <a class="cart-link" href="order.html" aria-label="Your order">
+              ${icon.bag}<span class="cart-label">Your order</span><span class="cart-count" data-cart-count hidden>0</span>
             </a>
             <button class="btn btn-ghost btn-icon nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Menu">${icon.menu}</button>
           </div>
@@ -291,9 +291,13 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
     footer.outerHTML = `
       <footer class="site-footer" id="site-footer">
         <div class="container">
+          <div class="footer-top">
+            <a class="footer-mark" href="index.html"><img src="538820.jpg" alt="" width="64" height="64"><span>One Stop Solution</span></a>
+            <p class="footer-tag">${escapeHtml(business.tagline)}</p>
+          </div>
           <div class="footer-grid">
-            <div class="footer-about">
-              <a class="brand" href="index.html"><img src="538820.jpg" alt="" width="52" height="52"><span class="brand-name"><strong>ONE STOP SOLUTION</strong><span>${escapeHtml(business.tagline)}</span></span></a>
+            <div class="footer-col">
+              <h2>About</h2>
               <p>Wholesale catalogue. Build your order online and confirm it with us on WhatsApp.</p>
             </div>
             <nav class="footer-col" aria-label="Footer">
@@ -308,13 +312,13 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
             <div class="footer-col">
               <h2>Contact</h2>
               <ul>
-                <li><a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">WhatsApp: ${escapeHtml(phoneDisplay)}</a></li>
-                <li><a href="tel:+${escapeHtml(business.whatsapp)}">Call: ${escapeHtml(phoneDisplay)}</a></li>
-                <li><a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">Instagram: @${escapeHtml(business.instagram)}</a></li>
+                <li><a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">WhatsApp ${escapeHtml(phoneDisplay)}</a></li>
+                <li><a href="tel:+${escapeHtml(business.whatsapp)}">Call ${escapeHtml(phoneDisplay)}</a></li>
+                <li><a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">Instagram @${escapeHtml(business.instagram)}</a></li>
               </ul>
             </div>
           </div>
-          <div class="footer-base"><span>© ${new Date().getFullYear()} ${escapeHtml(business.businessName)}</span><span>${escapeHtml(business.tagline)}</span></div>
+          <div class="footer-base"><span>© ${new Date().getFullYear()} ${escapeHtml(business.businessName)}</span></div>
         </div>
       </footer>`;
   }

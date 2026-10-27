@@ -18,6 +18,9 @@ let emulator = false;
 let loginMessage = "";
 let appConfig = null;
 
+const RAIL_KEY = "oss.admin.rail";
+const railCollapsed = () => { try { return localStorage.getItem(RAIL_KEY) === "collapsed"; } catch { return false; } };
+
 const NAV = [
   ["dashboard", "Dashboard", icons.dashboard],
   ["orders", "Orders", icons.orders],
@@ -115,17 +118,18 @@ function renderShell() {
       <button type="button" id="menu-btn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">${icons.menu}</button>
       <img src="538820.jpg" alt=""><strong>OSS Admin</strong>
     </div>
-    <div class="shell">
+    <div class="shell${railCollapsed() ? " is-collapsed" : ""}" id="shell">
       <aside class="sidebar" id="sidebar">
-        <div class="side-brand"><img src="538820.jpg" alt=""><div><strong>ONE STOP SOLUTION</strong><span>Admin</span></div></div>
+        <div class="side-brand"><img src="538820.jpg" alt=""><div class="side-label"><strong>One Stop Solution</strong><span>Operations</span></div></div>
         <nav class="side-nav" aria-label="Admin">
-          ${NAV.map(([key, label, icon]) => `<a href="#/${key}" data-nav="${key}">${icon}<span>${label}</span>${key === "orders" ? '<span class="pill" id="pending-pill" hidden></span>' : ""}</a>`).join("")}
+          ${NAV.map(([key, label, icon]) => `<a href="#/${key}" data-nav="${key}" title="${label}">${icon}<span class="side-label">${label}</span>${key === "orders" ? '<span class="pill" id="pending-pill" hidden></span>' : ""}</a>`).join("")}
         </nav>
         <div class="side-foot">
-          <div class="side-user"><span class="side-avatar" aria-hidden="true">${esc((me.email || "?").charAt(0))}</span><span class="who">${esc(me.email)}<br><span class="role">${me.role === "owner" ? "Owner" : "Staff"}</span></span></div>
-          <span class="env">${emulator ? "Emulator data" : `Firebase: ${esc(appConfig?.firebase?.projectId || "")}`}</span>
-          <a href="index.html" target="_blank" rel="noopener">View public catalogue ↗</a>
-          <button type="button" id="logout-btn">Sign out</button>
+          <div class="side-user" title="${esc(me.email)}"><span class="side-avatar" aria-hidden="true">${esc((me.email || "?").charAt(0))}</span><span class="who side-label">${esc(me.email)}<br><span class="role">${me.role === "owner" ? "Owner" : "Staff"}</span></span></div>
+          <span class="env side-label">${emulator ? "Emulator data" : `Firebase: ${esc(appConfig?.firebase?.projectId || "")}`}</span>
+          <a class="side-link" href="index.html" target="_blank" rel="noopener" title="View public catalogue">${icons.link}<span class="side-label">View public catalogue</span></a>
+          <button type="button" class="side-link" id="logout-btn" title="Sign out">${icons.logout}<span class="side-label">Sign out</span></button>
+          <button type="button" class="side-link side-collapse" id="rail-btn" aria-controls="sidebar" aria-pressed="false">${icons.collapse}<span class="side-label">Collapse sidebar</span></button>
         </div>
       </aside>
       <div class="side-scrim" id="side-scrim" aria-hidden="true"></div>
@@ -151,6 +155,22 @@ function renderShell() {
     if (event.target.closest("a")) setMenu(false);
   });
   document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+
+  // Desktop: the sidebar collapses to an icon rail; the choice is remembered.
+  const shell = document.getElementById("shell");
+  const rail = document.getElementById("rail-btn");
+  const syncRail = () => {
+    const collapsed = shell.classList.contains("is-collapsed");
+    rail.setAttribute("aria-pressed", String(collapsed));
+    rail.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+    rail.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+  };
+  rail.addEventListener("click", () => {
+    const collapsed = shell.classList.toggle("is-collapsed");
+    try { localStorage.setItem(RAIL_KEY, collapsed ? "collapsed" : "expanded"); } catch { /* ignore */ }
+    syncRail();
+  });
+  syncRail();
 }
 
 export async function refreshPendingCount() {

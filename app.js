@@ -93,10 +93,20 @@ function visibleProducts() {
 
 function renderChips() {
   const chips = [{ id: "all", name: "All products", productCount: state.products.length }, ...state.categories];
-  $("#category-chips").innerHTML = chips.map(c => `
+  const html = chips.map(c => `
     <button type="button" class="chip" data-category="${escapeHtml(c.id)}" aria-pressed="${state.category === c.id}">
-      ${escapeHtml(c.name)}<span class="count">${c.productCount}</span>
+      <span class="chip-name">${escapeHtml(c.name)}</span><span class="count">${c.productCount}</span>
     </button>`).join("");
+  $("#category-chips").innerHTML = html;
+  $("#category-quick").innerHTML = html;
+  renderFilterCount();
+}
+
+function renderFilterCount() {
+  const active = Number(state.category !== "all") + Number(state.availability !== "all");
+  const badge = $("#filter-count");
+  badge.textContent = String(active);
+  badge.hidden = active === 0;
 }
 
 function renderGrid() {
@@ -134,14 +144,18 @@ function renderHero() {
     const product = withImages.find(p => p.categoryId === category.id && !picks.includes(p));
     if (product) picks.push(product);
   }
-  $("#hero-mosaic").innerHTML = picks.slice(0, 4).map(p => `
+  $("#hero-mosaic").innerHTML = picks.slice(0, 3).map(p => `
     <a class="hero-tile" href="product.html?sku=${encodeURIComponent(p.sku)}" tabindex="-1">
       <img src="${escapeHtml(imageOf(p, 600))}" alt="" width="400" height="400" fetchpriority="high">
-      <span class="caption">${escapeHtml(displayName(p.name))}</span>
+      <span class="caption"><span class="caption-sku">${escapeHtml(p.sku)}</span>${escapeHtml(displayName(p.name))}</span>
     </a>`).join("");
 
   $("#hero-lead").textContent = `Browse ${state.products.length} products across ${state.categories.length} categories — build your order and confirm it with us on WhatsApp.`;
   $("#hero-wa").href = waUrl(state.business.whatsapp, `Hi ${state.business.businessName},\n\n`);
+  const popular = [...state.categories].sort((a, b) => b.productCount - a.productCount).slice(0, 4);
+  $("#hero-quick").innerHTML = popular.length
+    ? `<span>Popular:</span>${popular.map(c => `<button type="button" data-category-tile="${escapeHtml(c.id)}">${escapeHtml(c.name)}</button>`).join("")}`
+    : "";
 }
 
 function renderCategories() {
@@ -149,8 +163,8 @@ function renderCategories() {
   $("#category-rail").innerHTML = state.categories.map(c => {
     const product = state.products.find(p => p.categoryId === c.id && p.images.length);
     return `
-      <button type="button" class="category-tile reveal" data-category-tile="${escapeHtml(c.id)}">
-        <span class="thumb">${product ? `<img src="${escapeHtml(imageOf(product, 400))}" alt="" loading="lazy" width="200" height="150">` : ""}</span>
+      <button type="button" class="category-tile" data-category-tile="${escapeHtml(c.id)}">
+        <span class="thumb">${product ? `<img src="${escapeHtml(imageOf(product, 600))}" alt="" loading="lazy" width="300" height="300">` : ""}</span>
         <span class="label"><strong>${escapeHtml(c.name)}</strong><span>${c.productCount} product${c.productCount === 1 ? "" : "s"}</span></span>
       </button>`;
   }).join("");
@@ -231,16 +245,32 @@ function bindEvents() {
     $("#catalogue").scrollIntoView();
   });
 
-  $("#category-chips").addEventListener("click", event => {
+  // The hero search drives the same query as the header search.
+  const heroSearch = $("#hero-search");
+  heroSearch.value = state.q;
+  search.addEventListener("input", () => { heroSearch.value = search.value; });
+  $("#hero-search-form").addEventListener("submit", event => {
+    event.preventDefault();
+    state.q = heroSearch.value;
+    search.value = heroSearch.value;
+    writeUrl();
+    renderGrid();
+    $("#catalogue").scrollIntoView();
+  });
+
+  const onChip = event => {
     const chip = event.target.closest("[data-category]");
     if (!chip) return;
     state.category = chip.dataset.category;
     writeUrl();
     renderChips();
     renderGrid();
-  });
+    $(`#category-quick [data-category="${CSS.escape(state.category)}"]`)?.scrollIntoView({ inline: "center", block: "nearest" });
+  };
+  $("#category-chips").addEventListener("click", onChip);
+  $("#category-quick").addEventListener("click", onChip);
 
-  $("#category-rail").addEventListener("click", event => {
+  const onCategoryTile = event => {
     const tile = event.target.closest("[data-category-tile]");
     if (!tile) return;
     state.category = tile.dataset.categoryTile;
@@ -248,28 +278,63 @@ function bindEvents() {
     renderChips();
     renderGrid();
     $("#catalogue").scrollIntoView();
-    document.querySelector(`[data-category="${CSS.escape(state.category)}"]`)?.scrollIntoView({ inline: "center", block: "nearest" });
-  });
+    $(`#category-quick [data-category="${CSS.escape(state.category)}"]`)?.scrollIntoView({ inline: "center", block: "nearest" });
+  };
+  $("#category-rail").addEventListener("click", onCategoryTile);
+  $("#hero-quick").addEventListener("click", onCategoryTile);
 
   const availability = $("#availability-filter");
+  const setAvailability = value => {
+    const input = availability.querySelector(`input[value="${CSS.escape(value)}"]`) || availability.querySelector('input[value="all"]');
+    input.checked = true;
+  };
   const sort = $("#sort");
-  availability.value = state.availability;
+  setAvailability(state.availability);
   sort.value = state.sort;
-  availability.addEventListener("change", () => { state.availability = availability.value; writeUrl(); renderGrid(); });
+  availability.addEventListener("change", event => {
+    state.availability = event.target.value;
+    writeUrl();
+    renderFilterCount();
+    renderGrid();
+  });
   sort.addEventListener("change", () => { state.sort = sort.value; writeUrl(); renderGrid(); });
 
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-reset]")) return;
     Object.assign(state, { q: "", category: "all", availability: "all" });
     search.value = "";
-    availability.value = "all";
+    heroSearch.value = "";
+    setAvailability("all");
     writeUrl();
     renderChips();
     renderGrid();
   });
 
+  bindFilterDrawer();
   bindCartControls(document.querySelector("main"), sku => state.products.find(p => p.sku === sku), refreshActions);
   window.addEventListener("cart:change", renderOrderBar);
+}
+
+// On small screens the filter sidebar becomes a drawer.
+function bindFilterDrawer() {
+  const drawer = $("#filters");
+  const openBtn = $("#filters-open");
+  const scrim = $("#filters-scrim");
+  const setOpen = open => {
+    drawer.classList.toggle("is-open", open);
+    scrim.hidden = !open;
+    openBtn.setAttribute("aria-expanded", String(open));
+    document.body.classList.toggle("no-scroll", open);
+    if (open) $("#filters-close").focus();
+    else openBtn.focus({ preventScroll: true });
+  };
+  openBtn.addEventListener("click", () => setOpen(true));
+  $("#filters-close").addEventListener("click", () => setOpen(false));
+  $("#filters-apply").addEventListener("click", () => setOpen(false));
+  scrim.addEventListener("click", () => setOpen(false));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && drawer.classList.contains("is-open")) setOpen(false);
+  });
 }
 
 /* ---------------- start ---------------- */

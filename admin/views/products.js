@@ -8,6 +8,8 @@ import {
 import { GST_RATES } from "../../shared/pricing.js";
 
 const PAGE_SIZE = 25;
+const VIEW_KEY = "oss.admin.productsView";
+const thumbUrl = (src, w) => (src || "/images/placeholder.svg").replace("/image/upload/", `/image/upload/f_auto,q_auto,c_limit,w_${w}/`);
 
 export async function render(el, ctx) {
   const [id] = ctx.params;
@@ -35,7 +37,8 @@ async function renderList(el, ctx) {
     status: ctx.query.get("status") || "",
     filter: ctx.query.get("filter") || "",
     sort: ctx.query.get("sort") || "sku",
-    page: 1
+    page: 1,
+    view: (() => { try { return localStorage.getItem(VIEW_KEY) || "grid"; } catch { return "grid"; } })()
   };
   const topCategories = categories.filter(c => !c.parentId);
 
@@ -60,6 +63,10 @@ async function renderList(el, ctx) {
       <select class="select" id="sort" style="width:auto" aria-label="Sort">
         <option value="sku">Sort: SKU</option><option value="name">Name</option><option value="price">Price</option><option value="stock">Available stock</option><option value="updated">Recently updated</option>
       </select>
+      <div class="view-toggle" role="group" aria-label="Layout">
+        <button class="btn btn-ghost btn-icon" type="button" data-view="grid" aria-label="Grid view" title="Grid view">${icons.grid}</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-view="table" aria-label="Table view" title="Table view">${icons.list}</button>
+      </div>
     </div>
     <section class="card"><div id="list"></div></section>`;
 
@@ -99,7 +106,27 @@ async function renderList(el, ctx) {
       box.innerHTML = `<div class="empty"><h3>No products found</h3><p>Try another search or filter.</p></div>`;
       return;
     }
-    box.innerHTML = `
+    el.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === state.view)));
+    const flags = p => `${p.imageStatus === "missing" ? '<span class="badge red">Photo file missing</span>' : p.imageStatus === "none" ? '<span class="badge amber">No photo</span>' : ""}${p.needsReview.length ? `<span class="badge amber">Review: ${esc(p.needsReview.map(r => r.field).join(", "))}</span>` : ""}`;
+    const body = state.view === "grid" ? `
+      <div class="product-tiles">${slice.map(p => `
+        <article class="ptile" data-id="${esc(p.id)}">
+          <div class="ptile-img">
+            <img src="${esc(thumbUrl(p.images[0], 400))}" alt="" loading="lazy" onerror="this.src='/images/placeholder.svg'">
+            <div class="ptile-status">${productStatusBadge(p.status)}${p.featured ? ' <span class="badge gold">Featured</span>' : ""}</div>
+          </div>
+          <div class="ptile-body">
+            <span class="ptile-sku">${esc(p.sku)}</span>
+            <a class="name" href="#/products/${esc(p.id)}">${esc(p.name)}</a>
+            <span class="muted small">${esc(p.categoryName)}${p.subcategoryName ? ` / ${esc(p.subcategoryName)}` : ""}</span>
+            <dl class="ptile-facts">
+              <div><dt>Price</dt><dd class="num">${p.effectivePrice === null ? '<span class="muted">On request</span>' : money(p.effectivePrice)}</dd></div>
+              <div><dt>Stock</dt><dd class="num">${p.trackStock ? `${p.availableQty}${p.reservedQty ? ` <span class="muted small">(${p.reservedQty} reserved)</span>` : ""}` : '<span class="muted">Not counted</span>'}</dd></div>
+            </dl>
+            <div class="ptile-badges">${availabilityBadge(p.availability)}${flags(p)}</div>
+          </div>
+        </article>`).join("")}
+      </div>` : `
       <div class="table-wrap"><table class="table responsive">
         <thead><tr><th>Product</th><th>Category</th><th class="right">Price</th><th class="right">Stock</th><th>Availability</th><th>Status</th></tr></thead>
         <tbody>${slice.map(p => `
@@ -114,7 +141,8 @@ async function renderList(el, ctx) {
             <td data-label="Availability">${availabilityBadge(p.availability)}</td>
             <td data-label="Status">${productStatusBadge(p.status)}${p.featured ? ' <span class="badge gold">Featured</span>' : ""}</td>
           </tr>`).join("")}
-        </tbody></table></div>
+        </tbody></table></div>`;
+    box.innerHTML = `${body}
       <div class="pagination">
         <span class="muted">Showing ${(state.page - 1) * PAGE_SIZE + 1}–${Math.min(state.page * PAGE_SIZE, list.length)} of ${list.length}</span>
         <div style="display:flex;gap:6px">
@@ -129,8 +157,15 @@ async function renderList(el, ctx) {
   el.querySelector("#list").addEventListener("click", e => {
     const pager = e.target.closest("[data-page]");
     if (pager) { state.page += Number(pager.dataset.page); draw(); el.scrollIntoView(); return; }
-    const row = e.target.closest("tr[data-id]");
+    const row = e.target.closest("[data-id]");
     if (row && !e.target.closest("a")) ctx.navigate(`products/${row.dataset.id}`);
+  });
+  el.querySelector(".view-toggle").addEventListener("click", e => {
+    const button = e.target.closest("[data-view]");
+    if (!button) return;
+    state.view = button.dataset.view;
+    try { localStorage.setItem(VIEW_KEY, state.view); } catch { /* ignore */ }
+    draw();
   });
   el.querySelector("#export-btn").addEventListener("click", async e => {
     setBusy(e.currentTarget, true);
