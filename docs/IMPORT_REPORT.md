@@ -1,6 +1,6 @@
 # OSS Catalogue Import Report
 
-Generated: 2026-10-27T06:53:05.568Z
+Generated: 2026-10-27T06:54:38.608Z
 
 Sources, in priority order: local project files (products.json, images), legacy Firestore `products` collection (snapshot in `data/legacy-firestore-products.json`), live site https://oss-vert.vercel.app (identical to the repository apart from line endings), Instagram @onestopsolution4325 (only profile metadata is public: 36 posts; post content requires login and was not accessed).
 
