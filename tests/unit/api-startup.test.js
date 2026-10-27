@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 
 // Regression: the production function crashed at import time (ERR_REQUIRE_ESM
 // from firebase-admin → jwks-rsa → jose) on a Node.js runtime without
@@ -32,6 +33,12 @@ async function withEnv(values, fn) {
 test("the API entry point loads on this Node.js", async () => {
   const { default: handler } = await import("../../api/index.js");
   assert.equal(typeof handler, "function");
+});
+
+test("the API entry point loads without require(esm), as on Vercel's runtime", () => {
+  const entry = new URL("../../api/index.js", import.meta.url).href;
+  const result = spawnSync(process.execPath, ["--no-experimental-require-module", "--input-type=module", "-e", `await import(${JSON.stringify(entry)})`], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test("missing or invalid configuration returns a diagnostic, not a crash", async () => {

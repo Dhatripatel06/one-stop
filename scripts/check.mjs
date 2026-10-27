@@ -107,6 +107,14 @@ try {
 } catch (error) {
   problems.push(`The API cannot load on Node.js ${process.version}: ${error.code || ""} ${error.message.split("\n")[0]}`);
 }
+// Vercel's function runtime cannot require() ES modules even on Node 24
+// (the build container can), so load the API with require(esm) disabled too.
+const strict = spawnSync(process.execPath, ["--no-experimental-require-module", "--input-type=module", "-e",
+  `await import(${JSON.stringify(pathToFileURL(path.join(root, "api", "index.js")).href)})`], { encoding: "utf8" });
+if (strict.status !== 0) {
+  const line = (strict.stderr.match(/Error[^\n]*/) || [strict.stderr.trim()])[0];
+  problems.push(`The API cannot load without require(esm), as on Vercel's runtime: ${line}`);
+}
 
 if (problems.length) {
   console.error(`✖ ${problems.length} problem(s):\n- ${problems.join("\n- ")}`);
