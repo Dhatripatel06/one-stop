@@ -36,7 +36,7 @@ test("the API entry point loads on this Node.js", async () => {
 });
 
 test("the API entry point loads without require(esm), as on Vercel's runtime", () => {
-  const entry = new URL("../../api/index.js", import.meta.url).href;
+  const entry = new URL("../../server/router.js", import.meta.url).href;
   const result = spawnSync(process.execPath, ["--no-experimental-require-module", "--input-type=module", "-e", `await import(${JSON.stringify(entry)})`], { encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
 });

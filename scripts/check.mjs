@@ -103,14 +103,14 @@ if (Number(process.versions.node.split(".")[0]) < minMajor) {
   problems.push(`Node.js ${process.version} is older than firebase-admin requires (${adminEngines}). Set "engines.node" in package.json.`);
 }
 try {
-  await import(pathToFileURL(path.join(root, "api", "index.js")).href);
+  await import(pathToFileURL(path.join(root, "server", "router.js")).href);
 } catch (error) {
   problems.push(`The API cannot load on Node.js ${process.version}: ${error.code || ""} ${error.message.split("\n")[0]}`);
 }
 // Vercel's function runtime cannot require() ES modules even on Node 24
 // (the build container can), so load the API with require(esm) disabled too.
 const strict = spawnSync(process.execPath, ["--no-experimental-require-module", "--input-type=module", "-e",
-  `await import(${JSON.stringify(pathToFileURL(path.join(root, "api", "index.js")).href)})`], { encoding: "utf8" });
+  `await import(${JSON.stringify(pathToFileURL(path.join(root, "server", "router.js")).href)})`], { encoding: "utf8" });
 if (strict.status !== 0) {
   const line = (strict.stderr.match(/Error[^\n]*/) || [strict.stderr.trim()])[0];
   problems.push(`The API cannot load without require(esm), as on Vercel's runtime: ${line}`);
