@@ -5,6 +5,7 @@
 import { AggregateField } from "firebase-admin/firestore";
 import { db, Timestamp } from "./firebase.js";
 import { availabilityOf, availableQty } from "./products.js";
+import { imageStatus, toPublicPath } from "./local-images.js";
 
 async function countWhere(field, value) {
   const snap = await db().collection("orders").where(field, "==", value).count().get();
@@ -48,10 +49,12 @@ export async function getDashboard({ from, to } = {}) {
   const lowStock = active.filter(p => availabilityOf(p) === "low_stock");
   const outOfStock = active.filter(p => availabilityOf(p) === "out_of_stock");
   const untracked = active.filter(p => !p.trackStock);
-  const needsReview = productsList.filter(p => p.status !== "archived" && (p.needsReview || []).length);
+  const imageProblem = p => ["missing", "none"].includes(imageStatus((p.images || []).map(toPublicPath).filter(Boolean)));
+  const missingImages = productsList.filter(p => p.status !== "archived" && imageProblem(p));
+  const needsReview = productsList.filter(p => p.status !== "archived" && ((p.needsReview || []).length || imageProblem(p)));
   const unpriced = active.filter(p => p.price === null || p.price === undefined);
 
-  const brief = p => ({ id: p.id, sku: p.sku, name: p.name, available: availableQty(p), threshold: p.lowStockThreshold ?? null, image: (p.images || [])[0] || "" });
+  const brief = p => ({ id: p.id, sku: p.sku, name: p.name, available: availableQty(p), threshold: p.lowStockThreshold ?? null, image: toPublicPath((p.images || [])[0]) || "" });
 
   return {
     period: { from: fromText, to: toText },
@@ -62,6 +65,7 @@ export async function getDashboard({ from, to } = {}) {
       untracked: untracked.length,
       needsReview: needsReview.length,
       unpriced: unpriced.length,
+      missingImages: missingImages.length,
       lowStockItems: lowStock.slice(0, 10).map(brief),
       outOfStockItems: outOfStock.slice(0, 10).map(brief)
     },

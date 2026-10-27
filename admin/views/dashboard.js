@@ -37,7 +37,7 @@ export async function render(el, ctx) {
       <a class="stat ${p.lowStock ? "warn" : ""}" href="#/inventory?filter=low"><div class="label">Low stock</div><div class="value">${p.lowStock}</div></a>
       <a class="stat ${p.outOfStock ? "danger" : ""}" href="#/inventory?filter=out"><div class="label">Out of stock</div><div class="value">${p.outOfStock}</div></a>
       <a class="stat" href="#/inventory?filter=untracked"><div class="label">Stock not counted</div><div class="value">${p.untracked}</div><div class="hint">Record initial stock to track</div></a>
-      <a class="stat" href="#/products?filter=review"><div class="label">Needs review</div><div class="value">${p.needsReview}</div><div class="hint">${p.unpriced} without a price</div></a>
+      <a class="stat" href="#/products?filter=review"><div class="label">Needs review</div><div class="value">${p.needsReview}</div><div class="hint">${p.unpriced} without a price${p.missingImages ? ` · ${p.missingImages} without a photo` : ""}</div></a>
     </div>
 
     <form class="card card-pad toolbar" id="period-form" style="margin-bottom:16px">
@@ -68,7 +68,7 @@ export async function render(el, ctx) {
         <div class="card-head"><h2>Stock alerts</h2><a href="#/inventory" class="btn btn-ghost btn-sm">Inventory</a></div>
         ${[...p.outOfStockItems.map(i => ({ ...i, kind: "out" })), ...p.lowStockItems.map(i => ({ ...i, kind: "low" }))].map(i => `
           <a href="#/inventory/${esc(i.id)}" style="display:flex;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit">
-            <img src="${esc(i.image || "538820.jpg")}" alt="" style="width:36px;height:36px;object-fit:contain">
+            <img src="${esc(i.image || "/images/placeholder.svg")}" alt="" style="width:36px;height:36px;object-fit:contain">
             <span style="flex:1;min-width:0"><strong style="display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name)}</strong><span class="muted small">${esc(i.sku)}</span></span>
             <span class="badge ${i.kind === "out" ? "red" : "amber"}">${i.kind === "out" ? "Out" : `${i.available} left`}</span>
           </a>`).join("") || `<div class="empty"><p>${p.untracked === p.active ? "Stock tracking starts once you record initial stock counts in Inventory." : "No stock alerts."}</p></div>`}

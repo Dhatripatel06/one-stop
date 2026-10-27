@@ -111,7 +111,7 @@ async function renderList(el, ctx) {
         <thead><tr><th>Product</th><th class="right">On hand</th><th class="right">Reserved</th><th class="right">Available</th><th class="right">Alert at</th><th>Availability</th><th></th></tr></thead>
         <tbody>${list.map(p => `
           <tr>
-            <td class="cell-main"><div class="cell-product"><img class="thumb" src="${esc(p.images[0] || "538820.jpg")}" alt="" loading="lazy"><div><a class="name" href="#/inventory/${esc(p.id)}">${esc(p.name)}</a><div class="muted small">${esc(p.sku)}</div></div></div></td>
+            <td class="cell-main"><div class="cell-product"><img class="thumb" src="${esc(p.images[0] || "/images/placeholder.svg")}" alt="" loading="lazy"><div><a class="name" href="#/inventory/${esc(p.id)}">${esc(p.name)}</a><div class="muted small">${esc(p.sku)}</div></div></div></td>
             <td data-label="On hand" class="right num">${p.trackStock ? p.stockQty : "—"}</td>
             <td data-label="Reserved" class="right num">${p.trackStock ? p.reservedQty : "—"}</td>
             <td data-label="Available" class="right num"><strong>${p.trackStock ? p.availableQty : '<span class="muted" style="font-weight:500">Not counted</span>'}</strong></td>

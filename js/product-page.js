@@ -5,7 +5,7 @@
 import { api } from "./api.js";
 import { cart } from "./cart.js";
 import {
-  DEFAULT_BUSINESS, FALLBACK_IMAGE, badgeHtml, bindCartControls, cardActionsHtml, displayName, escapeHtml,
+  DEFAULT_BUSINESS, FALLBACK_IMAGE, imageUrl, badgeHtml, bindCartControls, cardActionsHtml, displayName, escapeHtml,
   icon, money, priceHtml, productCardHtml, productEnquiryMessage, renderLayout, toast, waUrl
 } from "./ui.js";
 
@@ -41,11 +41,11 @@ function render() {
     <div class="pdp">
       <div class="gallery">
         <div class="gallery-main" id="gallery-main">
-          <img src="${escapeHtml(images[0])}" alt="${escapeHtml(name)}" width="800" height="800" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
+          <img src="${escapeHtml(imageUrl(images[0], 1200))}" alt="${escapeHtml(name)}" width="800" height="800" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
         </div>
         ${images.length > 1 ? `
           <div class="gallery-thumbs" role="group" aria-label="Product images">
-            ${images.map((src, i) => `<button type="button" data-thumb="${i}" aria-current="${i === 0}" aria-label="Image ${i + 1} of ${images.length}"><img src="${escapeHtml(src)}" alt="" loading="lazy"></button>`).join("")}
+            ${images.map((src, i) => `<button type="button" data-thumb="${i}" aria-current="${i === 0}" aria-label="Image ${i + 1} of ${images.length}"><img src="${escapeHtml(imageUrl(src, 200))}" alt="" loading="lazy"></button>`).join("")}
           </div>` : ""}
       </div>
 
@@ -102,7 +102,7 @@ function bindDetail(images) {
   main.addEventListener("click", () => main.classList.toggle("is-zoomed"));
   document.querySelectorAll("[data-thumb]").forEach(button => {
     button.addEventListener("click", () => {
-      main.querySelector("img").src = images[Number(button.dataset.thumb)];
+      main.querySelector("img").src = imageUrl(images[Number(button.dataset.thumb)], 1200);
       main.classList.remove("is-zoomed");
       document.querySelectorAll("[data-thumb]").forEach(b => b.setAttribute("aria-current", String(b === button)));
     });

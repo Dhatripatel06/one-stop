@@ -8,6 +8,12 @@
    node scripts/migrate.mjs --seed-legacy   (emulator only) resets the
         emulator and loads data/legacy-firestore-products.json to simulate
         production before migrating
+   node scripts/migrate.mjs --include-snapshot
+        also uses data/legacy-firestore-products.json (the old project's
+        Firestore products, e.g. OSS_039/OSS_040) as a source — for a new,
+        empty Firebase project
+   Live writes need: --apply --confirm-project=<FIREBASE_PROJECT_ID>
+   Credentials and FIREBASE_PROJECT_ID are read from .env.local.
 
    Rules:
    - Nothing is invented: prices, stock counts and descriptions that do
@@ -15,6 +21,8 @@
    - Existing document IDs are kept. Already-migrated products are skipped.
    - Image paths from products.json win: they were visually verified.
      Legacy Firestore .webp paths point at other products' photos.
+   - Images stay in the codebase; Firestore stores root-relative paths
+     such as /OSS_001.jpg.
 ========================================================= */
 
 import fs from "node:fs";
@@ -24,13 +32,27 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
 const APPLY = args.has("--apply");
+const INCLUDE_SNAPSHOT = args.has("--include-snapshot");
+const confirmArg = process.argv.find(a => a.startsWith("--confirm-project="));
 
 if (args.has("--emulator") || args.has("--seed-legacy")) {
+  process.env.FIREBASE_MODE = "emulator";
   process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
-  process.env.FIREBASE_PROJECT_ID ||= "demo-oss";
+  process.env.FIREBASE_PROJECT_ID = process.env.EMULATOR_PROJECT_ID || "demo-oss";
+} else {
+  const { loadEnv } = await import("./load-env.mjs");
+  loadEnv();
 }
 
-const { db, FieldValue } = await import("../server/firebase.js");
+const { db, FieldValue, firebaseMode } = await import("../server/firebase.js");
+const { toPublicPath } = await import("../server/local-images.js");
+
+const MODE = firebaseMode();
+console.log(`Target: ${MODE === "emulator" ? "Firebase emulator" : "LIVE Firebase"} project ${process.env.FIREBASE_PROJECT_ID}${APPLY ? "" : " (dry run — nothing will be written)"}`);
+if (APPLY && MODE === "live" && confirmArg !== `--confirm-project=${process.env.FIREBASE_PROJECT_ID}`) {
+  console.error(`Refusing to write to a live project without --confirm-project=${process.env.FIREBASE_PROJECT_ID}.`);
+  process.exit(1);
+}
 const { categoryIdFor } = await import("../server/categories.js");
 const { DEFAULT_SETTINGS } = await import("../server/settings.js");
 
@@ -91,6 +113,14 @@ async function main() {
     if (data.schemaVersion === 2) migrated.add(String(data.sku).toUpperCase());
     else legacyDocs.push({ id: doc.id, ...data });
   }
+  if (INCLUDE_SNAPSHOT) {
+    const existingIds = new Set(snap.docs.map(doc => doc.id));
+    for (const doc of readJson("data/legacy-firestore-products.json").documents) {
+      const item = fromFirestoreRest(doc);
+      if (existingIds.has(item.id)) continue;
+      legacyDocs.push({ ...item, fromSnapshot: true });
+    }
+  }
   const legacyByCode = new Map();
   const duplicates = [];
   for (const doc of legacyDocs) {
@@ -110,7 +140,8 @@ async function main() {
     if (migrated.has(code)) { report.skipped.push(code); continue; }
     const base = masterByCode.get(code);
     const live = legacyByCode.get(code);
-    const source = base && live ? "products.json + Firestore" : base ? "products.json" : "Firestore (added by admin)";
+    const liveLabel = live?.fromSnapshot ? "Firestore snapshot (oss-digital-catalog)" : "Firestore";
+    const source = base && live ? `products.json + ${liveLabel}` : base ? "products.json" : `${liveLabel} (added by admin)`;
 
     let name = (base?.name || live?.name || "").trim();
     if (base && live && live.name && live.name.trim() !== base.name.trim()) {
@@ -189,7 +220,7 @@ async function main() {
         featured: false,
         sortOrder: base ? base.order : 1000 + products.length,
         specs: [],
-        images: image ? [image] : [],
+        images: image ? [toPublicPath(image) || image] : [],
         orderCount: 0,
         needsReview,
         legacy: {
@@ -202,7 +233,8 @@ async function main() {
         },
         importedFrom: source,
         // Only a real creation date is kept; most legacy records have none.
-        createdAt: live?.createdAt || null,
+        // Timestamp from Firestore, or an ISO string from the snapshot file.
+        createdAt: !live?.createdAt ? null : typeof live.createdAt.toDate === "function" ? live.createdAt : new Date(live.createdAt),
         importedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       }

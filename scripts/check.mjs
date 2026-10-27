@@ -5,6 +5,8 @@
    - config / data JSON is valid
    - local files referenced by HTML, imports and products.json exist
    - no server secrets appear in browser-delivered files
+   - images/manifest.json lists the product images in the project
+     (`--build` regenerates it; plain `check` only verifies it)
 ========================================================= */
 
 import fs from "node:fs";
@@ -13,6 +15,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const BUILD = process.argv.includes("--build");
 const problems = [];
 const SKIP = new Set(["node_modules", ".git", ".vercel", ".emulator-data", "tests"]);
 
@@ -67,7 +70,7 @@ for (const product of products) {
 
 // 6. No server secrets in browser files
 const browserFiles = files.filter(f => /\.(html|css|js)$/.test(f) && !rel(f).startsWith("server/") && !rel(f).startsWith("api/") && !rel(f).startsWith("scripts/"));
-const SECRET = /(BEGIN (RSA )?PRIVATE KEY|"private_key"\s*:|private_key_id|FIREBASE_PRIVATE_KEY\s*=|INVOICE_LINK_SECRET\s*=|client_secret)/;
+const SECRET = /(BEGIN (RSA )?PRIVATE KEY|"private_key"\s*:|private_key_id|FIREBASE_PRIVATE_KEY\s*=|INVOICE_LINK_SECRET\s*=|CLOUDINARY_API_SECRET\s*=|cloudinary:\/\/[^\s:'"]+:[^\s@'"]+@|client_secret)/;
 for (const file of browserFiles) {
   if (SECRET.test(fs.readFileSync(file, "utf8"))) problems.push(`Possible secret in browser-delivered file ${rel(file)}`);
 }
@@ -78,8 +81,21 @@ for (const name of [".env", ".env.local"]) {
   }
 }
 
+// 7. Product image manifest (used by the deployed API to validate image paths)
+const { writeManifest, listLocalImages } = await import("../server/local-images.js");
+const manifestFile = path.join(root, "images", "manifest.json");
+const before = fs.existsSync(manifestFile) ? fs.readFileSync(manifestFile, "utf8") : "";
+if (BUILD) {
+  writeManifest();
+} else {
+  const onDisk = listLocalImages();
+  const listed = before ? JSON.parse(before).images : [];
+  if (JSON.stringify(onDisk) !== JSON.stringify(listed)) problems.push("images/manifest.json is out of date. Run npm run build.");
+}
+
 if (problems.length) {
   console.error(`✖ ${problems.length} problem(s):\n- ${problems.join("\n- ")}`);
   process.exit(1);
 }
-console.log(`✔ Project check passed: ${jsFiles.length} JS modules, ${files.filter(f => f.endsWith(".html")).length} HTML pages, ${products.length} catalogue images.`);
+const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+console.log(`✔ Project check passed: ${jsFiles.length} JS modules, ${files.filter(f => f.endsWith(".html")).length} HTML pages, ${manifest.images.length} product images in the manifest.`);

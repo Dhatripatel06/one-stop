@@ -96,32 +96,3 @@ export class Validator {
     }
   }
 }
-
-/* ---------------------------------------------------------
-   IMAGES
-   Product images may be:
-     - an existing asset in the project root, e.g. "OSS_001.jpg"
-     - an https:// URL (Firebase Storage or another host)
---------------------------------------------------------- */
-
-const LOCAL_IMAGE = /^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,120}\.(jpe?g|png|webp)$/i;
-
-export function cleanImageUrl(value) {
-  const text = String(value ?? "").trim();
-  if (!text) return null;
-  if (LOCAL_IMAGE.test(text) && !text.includes("..")) return text;
-  let url;
-  try {
-    url = new URL(text);
-  } catch {
-    return null;
-  }
-  const local = url.hostname === "127.0.0.1" || url.hostname === "localhost";
-  if (url.protocol !== "https:" && !(local && url.protocol === "http:")) return null;
-  if (url.username || url.password) return null;
-  return url.toString();
-}
-
-export function isLocalAsset(value) {
-  return LOCAL_IMAGE.test(String(value ?? ""));
-}

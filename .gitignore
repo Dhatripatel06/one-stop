@@ -8,3 +8,12 @@ firestore-debug.log*
 ui-debug.log*
 tests/browser/screenshots/
 .emulator-data/
+
+# Private Firebase credentials
+secrets/
+*service-account*.json
+
+# Service account keys — never commit
+*-firebase-adminsdk-*.json
+one-stop-72ee5-*.json
+service-account*.json

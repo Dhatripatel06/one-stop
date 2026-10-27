@@ -52,7 +52,7 @@ describe("products and categories", () => {
   test("create a product with a new category", async () => {
     const res = await owner.post("/admin/products", {
       sku: "it_001", name: "Steel Bottle", newCategoryName: "Water Bottle",
-      price: 25000, minQty: 2, images: ["OSS_009.jpg"]
+      price: 25000, minQty: 2
     });
     assert.equal(res.status, 200, JSON.stringify(res.data));
     assert.equal(res.data.sku, "IT_001");
@@ -61,7 +61,7 @@ describe("products and categories", () => {
   });
 
   test("generated SKUs and second product", async () => {
-    const res = await staff.post("/admin/products", { generateSku: true, name: "Popcorn Maker", categoryId: "water-bottle", price: 84950, images: ["OSS_002.jpg"] });
+    const res = await staff.post("/admin/products", { generateSku: true, name: "Popcorn Maker", categoryId: "water-bottle", price: 84950 });
     assert.equal(res.status, 200, JSON.stringify(res.data));
     assert.match(res.data.sku, /^OSS_\d{3}$/);
     ids.p2 = res.data.id;
@@ -87,13 +87,11 @@ describe("products and categories", () => {
     assert.ok(res.data.details.fields.images);
   });
 
-  test("update image URL and see it publicly", async () => {
-    const res = await owner.patch(`/admin/products/${ids.p1}`, { images: ["https://example.com/bottle.jpg", "OSS_009.jpg"] });
-    assert.equal(res.status, 200);
+  test("exact stock is not exposed publicly", async () => {
     const pub = await anon.get("/products/IT_001");
     assert.equal(pub.status, 200);
-    assert.equal(pub.data.product.images[0], "https://example.com/bottle.jpg");
-    assert.equal(pub.data.product.stockQty, undefined, "exact stock is not public");
+    assert.equal(pub.data.product.stockQty, undefined);
+    assert.equal(pub.data.product.reservedQty, undefined);
   });
 
   test("public catalogue only lists active products", async () => {
@@ -426,25 +424,6 @@ describe("unavailable integrations report accurately", () => {
     process.env.INVOICE_LINK_SECRET = saved;
     assert.equal(res.status, 503);
     assert.match(res.data.error, /not configured/);
-  });
-
-  test("image import refuses private network addresses", async () => {
-    const res = await owner.post("/admin/images/import", { url: "https://127.0.0.1/a.jpg" });
-    assert.equal(res.status, 400);
-  });
-
-  test("image upload rejects non-images", async () => {
-    const res = await owner.post("/admin/images", { data: Buffer.from("<svg onload=alert(1)>").toString("base64"), sku: "IT_001" });
-    assert.equal(res.status, 400);
-  });
-
-  test("image upload stores a JPEG in Storage", async () => {
-    const jpeg = Buffer.from("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==", "base64");
-    const res = await owner.post("/admin/images", { data: jpeg.toString("base64"), sku: "IT_001" });
-    assert.equal(res.status, 200, JSON.stringify(res.data));
-    assert.match(res.data.url, /\/v0\/b\/.+\/o\/product-images%2FIT_001%2F.+\.jpg\?alt=media&token=/);
-    const fetched = await fetch(res.data.url);
-    assert.equal(fetched.status, 200);
   });
 });
 

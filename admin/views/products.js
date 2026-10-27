@@ -3,7 +3,7 @@
 import { api } from "../api.js";
 import {
   availabilityBadge, clearFormErrors, confirmDialog, downloadBlob, errorState, esc, field, fromRupeesInput,
-  icons, money, productStatusBadge, selectField, setBusy, showFormErrors, toRupeesInput, toast, toastError
+  icons, money, openModal, productStatusBadge, selectField, setBusy, showFormErrors, toRupeesInput, toast, toastError
 } from "../ui.js";
 import { GST_RATES } from "../../shared/pricing.js";
 
@@ -55,7 +55,7 @@ async function renderList(el, ctx) {
         <option value="">All statuses</option><option value="active">Active</option><option value="inactive">Hidden</option><option value="archived">Archived</option>
       </select>
       <select class="select" id="filter" style="width:auto" aria-label="Filter">
-        <option value="">All products</option><option value="review">Needs review</option><option value="unpriced">No price</option><option value="untracked">Stock not counted</option><option value="unavailable">Out of stock / coming soon</option>
+        <option value="">All products</option><option value="review">Needs review</option><option value="photo">Photo missing</option><option value="unpriced">No price</option><option value="untracked">Stock not counted</option><option value="unavailable">Out of stock / coming soon</option>
       </select>
       <select class="select" id="sort" style="width:auto" aria-label="Sort">
         <option value="sku">Sort: SKU</option><option value="name">Name</option><option value="price">Price</option><option value="stock">Available stock</option><option value="updated">Recently updated</option>
@@ -71,7 +71,9 @@ async function renderList(el, ctx) {
       if (q && !`${p.sku} ${p.name} ${p.categoryName} ${p.subcategoryName || ""}`.toLowerCase().includes(q)) return false;
       if (state.category && p.categoryId !== state.category) return false;
       if (state.status && p.status !== state.status) return false;
-      if (state.filter === "review" && !p.needsReview.length) return false;
+      const photoProblem = p.imageStatus === "missing" || p.imageStatus === "none";
+      if (state.filter === "review" && !p.needsReview.length && !photoProblem) return false;
+      if (state.filter === "photo" && !photoProblem) return false;
       if (state.filter === "unpriced" && p.price !== null) return false;
       if (state.filter === "untracked" && p.trackStock) return false;
       if (state.filter === "unavailable" && !["out_of_stock", "coming_soon"].includes(p.availability)) return false;
@@ -103,8 +105,8 @@ async function renderList(el, ctx) {
         <tbody>${slice.map(p => `
           <tr class="clickable" data-id="${esc(p.id)}">
             <td class="cell-main"><div class="cell-product">
-              <img class="thumb" src="${esc(p.images[0] || "538820.jpg")}" alt="" loading="lazy" onerror="this.src='538820.jpg'">
-              <div><a class="name" href="#/products/${esc(p.id)}">${esc(p.name)}</a><div class="muted small">${esc(p.sku)}${p.needsReview.length ? ` · <span class="badge amber">Review: ${esc(p.needsReview.map(r => r.field).join(", "))}</span>` : ""}</div></div>
+              <img class="thumb" src="${esc((p.images[0] || "/images/placeholder.svg").replace("/image/upload/", "/image/upload/f_auto,q_auto,c_limit,w_120/"))}" alt="" loading="lazy" onerror="this.src='/images/placeholder.svg'">
+              <div><a class="name" href="#/products/${esc(p.id)}">${esc(p.name)}</a><div class="muted small">${esc(p.sku)}${p.imageStatus === "missing" ? ' · <span class="badge red">Photo file missing</span>' : p.imageStatus === "none" ? ' · <span class="badge amber">No photo</span>' : ""}${p.needsReview.length ? ` · <span class="badge amber">Review: ${esc(p.needsReview.map(r => r.field).join(", "))}</span>` : ""}</div></div>
             </div></td>
             <td data-label="Category">${esc(p.categoryName)}${p.subcategoryName ? `<div class="muted small">${esc(p.subcategoryName)}</div>` : ""}</td>
             <td data-label="Price" class="right num">${p.effectivePrice === null ? '<span class="muted">On request</span>' : money(p.effectivePrice)}${p.salePrice !== null && p.salePrice !== undefined ? `<div class="muted small"><s>${money(p.price)}</s></div>` : ""}</td>
@@ -158,6 +160,7 @@ async function renderEditor(el, ctx, id) {
   let images = [...(p.images || [])];
   const active = categories.filter(c => !c.archived);
   const tops = active.filter(c => !c.parentId);
+  const imageOpts = ctx.config?.images || { configured: false };
 
   el.innerHTML = `
     <div class="page-head">
@@ -215,22 +218,27 @@ async function renderEditor(el, ctx, id) {
 
           <section class="card card-pad">
             <h2>Images</h2>
-            <p class="muted small" style="margin:-6px 0 12px">The first image is the main photo. Use the product's genuine photographs.</p>
+            <p class="muted small" style="margin:-6px 0 12px">Images are stored in Cloudinary and linked to this product in Firestore. The first image is the main photo.</p>
+            ${!imageOpts.configured ? '<p class="notice error" style="margin:0 0 12px">Image uploads are not configured on the server (Cloudinary credentials missing). Existing images still display.</p>' : ""}
+            ${product?.imageStatus === "missing" ? '<p class="notice warn" style="margin:0 0 12px">The main image cannot be found, so the website shows a placeholder. Upload a replacement.</p>' : ""}
+            ${product?.imageStatus === "none" ? '<p class="notice warn" style="margin:0 0 12px">This product has no photo yet; the website shows a placeholder.</p>' : ""}
             <div class="images-grid" id="images"></div>
             <span class="error field" data-for="images" style="color:var(--danger);font-weight:600;font-size:12px"></span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <label class="btn btn-primary" for="image-file" ${imageOpts.configured ? "" : 'aria-disabled="true" style="pointer-events:none;opacity:.5"'}>${icons.upload}Upload photo</label>
+              <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp" hidden>
+              <button class="btn btn-outline" type="button" id="pick-image" ${imageOpts.configured ? "" : "disabled"}>Choose from image library</button>
+            </div>
             <div class="image-add">
               <div class="field">
-                <label for="image-url">Add image by URL or file name</label>
-                <input class="input" id="image-url" placeholder="https://… or OSS_041.jpg">
+                <label for="image-url">Or add from a link</label>
+                <input class="input" id="image-url" placeholder="https://…" autocomplete="off" spellcheck="false" inputmode="url">
+                <span class="hint">The image is copied into Cloudinary, so the product never depends on the other website.</span>
               </div>
-              <button class="btn btn-outline" type="button" id="preview-url" style="margin-top:22px">Preview</button>
+              <button class="btn btn-outline" type="button" id="preview-url" style="margin-top:22px" ${imageOpts.configured ? "" : "disabled"}>Preview</button>
             </div>
             <div id="url-preview"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-              <label class="btn btn-outline" for="image-file">${icons.upload}Upload photo</label>
-              <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp" hidden>
-              <span class="muted small" style="align-self:center">JPEG, PNG or WebP. Large photos are resized before upload.</span>
-            </div>
+            <p class="muted small" id="upload-status" role="status" style="margin:8px 0 0"></p>
           </section>
         </div>
 
@@ -285,88 +293,193 @@ async function renderEditor(el, ctx, id) {
   categorySelect.addEventListener("change", fillSubcategories);
   fillSubcategories();
 
+  // Current form values in API shape (prices in paise).
+  const collect = () => {
+    const f = form.elements;
+    const isNewCategory = f.categoryId.value === "__new";
+    return {
+      name: f.name.value.trim(),
+      sku: f.sku.value.trim(),
+      unit: f.unit.value.trim(),
+      description: f.description.value,
+      specs: f.specs.value,
+      price: fromRupeesInput(f.price.value),
+      salePrice: fromRupeesInput(f.salePrice.value),
+      gstRate: f.gstRate.value === "" ? null : Number(f.gstRate.value),
+      hsn: f.hsn.value.trim(),
+      minQty: f.minQty.value,
+      status: f.status.value,
+      manualStatus: f.manualStatus.value,
+      lowStockThreshold: f.lowStockThreshold.value,
+      featured: f.featured.checked,
+      sortOrder: f.sortOrder.value,
+      images: [...images],
+      ...(isNewCategory ? { newCategoryName: f.newCategoryName.value } : { categoryId: f.categoryId.value }),
+      subcategoryId: isNewCategory ? "" : f.subcategoryId.value
+    };
+  };
+
   /* ---- images ---- */
+  const isCloudinary = src => /^https:\/\/res\.cloudinary\.com\//.test(src);
+  const thumb = src => isCloudinary(src) ? src.replace("/image/upload/", "/image/upload/f_auto,q_auto,c_limit,w_300/") : src;
+  const statusLine = el.querySelector("#upload-status");
+  let replaceIndex = null;
+
   const drawImages = () => {
     el.querySelector("#images").innerHTML = images.length ? images.map((src, i) => `
-      <div class="img-tile" data-index="${i}">
-        <img src="${esc(src)}" alt="Image ${i + 1}" onerror="this.parentElement.classList.add('broken')">
+      <div class="img-tile" data-index="${i}" title="${esc(src)}">
+        <img src="${esc(thumb(src))}" alt="Image ${i + 1}" onerror="this.parentElement.classList.add('broken')">
         ${i === 0 ? '<span class="tag">Main</span>' : ""}
+        ${isCloudinary(src) ? "" : '<span class="badge amber" title="Stored in the project folder, not yet in Cloudinary. Run the image migration or upload a replacement." style="position:absolute;left:6px;top:32px">Local file</span>'}
         <div class="tools">
           ${i > 0 ? `<button type="button" data-img="first" title="Make main image" aria-label="Make main image">★</button><button type="button" data-img="left" aria-label="Move left">‹</button>` : ""}
           ${i < images.length - 1 ? '<button type="button" data-img="right" aria-label="Move right">›</button>' : ""}
-          ${/^https?:/.test(src) && !src.includes("firebasestorage") && !src.includes("/v0/b/") ? '<button type="button" data-img="copy" title="Copy into storage" aria-label="Copy into storage">⇩</button>' : ""}
-          <button type="button" data-img="remove" title="Remove" aria-label="Remove image">✕</button>
+          ${imageOpts.configured ? '<button type="button" data-img="replace" title="Replace with a new photo" aria-label="Replace image">⟳</button>' : ""}
+          <button type="button" data-img="remove" title="Remove from this product" aria-label="Remove image">✕</button>
         </div>
-      </div>`).join("") : '<div class="muted small">No images yet.</div>';
+      </div>`).join("") : '<div class="muted small">No images yet — the website shows a placeholder.</div>';
   };
   drawImages();
+  // Snapshot of the loaded values, used to send only changed fields.
+  const initial = collect();
 
-  el.querySelector("#images").addEventListener("click", async e => {
+  const addImage = url => {
+    if (replaceIndex !== null) {
+      images[replaceIndex] = url;
+      replaceIndex = null;
+    } else {
+      if (images.includes(url)) return toast("This image is already on the product.");
+      if (images.length >= 8) return toast("Up to 8 images are allowed.", "error");
+      images.push(url);
+    }
+    drawImages();
+    toast("Image ready. Save the product to keep this change.");
+  };
+
+  el.querySelector("#images").addEventListener("click", e => {
     const button = e.target.closest("[data-img]");
     if (!button) return;
     const i = Number(button.closest("[data-index]").dataset.index);
     const action = button.dataset.img;
+    if (action === "replace") {
+      replaceIndex = i;
+      el.querySelector("#image-file").click();
+      return;
+    }
     if (action === "remove") images.splice(i, 1);
     if (action === "first") images.unshift(images.splice(i, 1)[0]);
     if (action === "left") [images[i - 1], images[i]] = [images[i], images[i - 1]];
     if (action === "right") [images[i + 1], images[i]] = [images[i], images[i + 1]];
-    if (action === "copy") {
-      button.disabled = true;
-      try {
-        const result = await api.post("/admin/images/import", { url: images[i], sku: form.sku.value });
-        images[i] = result.url;
-        toast("Image copied into storage. Save the product to keep it.", "success");
-      } catch (error) { toastError(error); }
-    }
     drawImages();
+  });
+
+  // Signed upload: the server signs one upload for one public ID; the file
+  // goes straight from the browser to Cloudinary; the server then verifies it.
+  el.querySelector("#image-file").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) { replaceIndex = null; return; }
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { replaceIndex = null; return toast("Choose a JPEG, PNG or WebP image.", "error"); }
+    const label = el.querySelector('label[for="image-file"]');
+    label.classList.add("is-loading");
+    try {
+      statusLine.textContent = "Preparing photo…";
+      const blob = await resizeImage(file);
+      statusLine.textContent = "Uploading to Cloudinary…";
+      const signed = await api.post("/admin/images/signature", { sku: form.sku.value });
+      if (blob.size > signed.maxBytes) throw new Error("This photo is too large even after resizing.");
+      const data = new FormData();
+      for (const [key, value] of Object.entries(signed.fields)) data.append(key, value);
+      data.append("file", blob, file.name.replace(/\.[^.]+$/, "") + ".jpg");
+      let response;
+      try {
+        response = await fetch(signed.uploadUrl, { method: "POST", body: data });
+      } catch {
+        throw new Error("Could not reach Cloudinary. Check your internet connection and try again.");
+      }
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(`Cloudinary rejected the upload: ${result?.error?.message || response.status}`);
+      statusLine.textContent = "Verifying upload…";
+      const asset = await api.post("/admin/images/confirm", result);
+      addImage(asset.url);
+      statusLine.textContent = "Uploaded. Save the product to keep it.";
+    } catch (error) {
+      replaceIndex = null;
+      statusLine.textContent = "";
+      toastError(error);
+    }
+    label.classList.remove("is-loading");
   });
 
   const urlInput = el.querySelector("#image-url");
   const previewBox = el.querySelector("#url-preview");
   el.querySelector("#preview-url").addEventListener("click", () => {
     const value = urlInput.value.trim();
-    if (!value) return;
+    if (/^[a-z]:[\\/]/i.test(value) || value.includes("\\")) {
+      previewBox.innerHTML = '<p class="notice error" style="margin-top:8px">That is a file on this computer. Use “Upload photo” instead.</p>';
+      return;
+    }
+    if (!/^https:\/\//i.test(value)) {
+      previewBox.innerHTML = '<p class="notice error" style="margin-top:8px">Enter an https:// image link.</p>';
+      return;
+    }
     previewBox.innerHTML = `
       <div class="preview-box">
         <img src="${esc(value)}" alt="Preview" id="preview-img">
         <div style="flex:1;min-width:0"><div class="small" id="preview-status">Loading preview…</div><div class="muted small" style="word-break:break-all">${esc(value)}</div></div>
-        <button class="btn btn-primary btn-sm" type="button" id="add-url" disabled>Add</button>
-        ${/^https:/.test(value) ? '<button class="btn btn-outline btn-sm" type="button" id="add-copy" disabled>Copy to storage & add</button>' : ""}
+        <button class="btn btn-primary btn-sm" type="button" id="add-url" disabled>Copy to Cloudinary & add</button>
       </div>`;
     const img = previewBox.querySelector("#preview-img");
     img.onload = () => {
-      previewBox.querySelector("#preview-status").textContent = `Image loaded (${img.naturalWidth}×${img.naturalHeight}). Check that it shows this product.`;
-      previewBox.querySelectorAll("button").forEach(b => { b.disabled = false; });
+      previewBox.querySelector("#preview-status").textContent = `Image loaded (${img.naturalWidth}×${img.naturalHeight}). Check that it shows this product and that you may use it.`;
+      previewBox.querySelector("#add-url").disabled = false;
     };
     img.onerror = () => { previewBox.querySelector("#preview-status").innerHTML = '<span style="color:var(--danger)">This image could not be loaded. Check the link.</span>'; };
-    previewBox.querySelector("#add-url").addEventListener("click", () => {
-      images.push(value); urlInput.value = ""; previewBox.innerHTML = ""; drawImages();
-    });
-    previewBox.querySelector("#add-copy")?.addEventListener("click", async ev => {
+    previewBox.querySelector("#add-url").addEventListener("click", async ev => {
       setBusy(ev.currentTarget, true);
       try {
-        const result = await api.post("/admin/images/import", { url: value, sku: form.sku.value });
-        images.push(result.url); urlInput.value = ""; previewBox.innerHTML = ""; drawImages();
-        toast("Image copied into storage.", "success");
-      } catch (error) { toastError(error); setBusy(ev.currentTarget, false); }
+        const asset = await api.post("/admin/images/import-url", { url: value, sku: form.sku.value });
+        addImage(asset.url);
+        urlInput.value = "";
+        previewBox.innerHTML = "";
+      } catch (error) {
+        toastError(error);
+        setBusy(ev.currentTarget, false);
+      }
     });
   });
 
-  el.querySelector("#image-file").addEventListener("change", async e => {
-    const file = e.target.files[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return toast("Choose a JPEG, PNG or WebP image.", "error");
-    const label = el.querySelector('label[for="image-file"]');
-    label.classList.add("is-loading");
-    try {
-      const data = await resizeImage(file);
-      const result = await api.post("/admin/images", { data, sku: form.sku.value, filename: file.name });
-      images.push(result.url);
-      drawImages();
-      toast("Photo uploaded. Save the product to keep it.", "success");
-    } catch (error) { toastError(error); }
-    label.classList.remove("is-loading");
+  el.querySelector("#pick-image").addEventListener("click", async e => {
+    const button = e.currentTarget;
+    setBusy(button, true);
+    let list;
+    try { list = (await api.get("/admin/images/assets")).filter(a => a.status !== "deleted"); }
+    catch (error) { toastError(error); setBusy(button, false); return; }
+    setBusy(button, false);
+    const modal = openModal({
+      title: "Image library",
+      size: "wide",
+      body: `<input class="input" id="pick-q" type="search" placeholder="Filter by name or product" style="margin-bottom:12px" aria-label="Filter images">
+        <div class="images-grid" id="pick-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div>`
+    });
+    const drawPick = q => {
+      const query = q.trim().toLowerCase();
+      const shown = list.filter(a => !query || a.publicId.toLowerCase().includes(query));
+      modal.$("#pick-grid").innerHTML = shown.map(a => `
+        <button type="button" class="img-tile" data-pick="${esc(a.url)}" style="padding:0;cursor:pointer;${images.includes(a.url) ? "outline:3px solid var(--navy);" : ""}" title="${esc(a.publicId)}">
+          <img src="${esc(thumb(a.url))}" alt="" loading="lazy">
+          <span class="tag" style="max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.publicId.split("/").pop())}</span>
+          <span class="badge ${a.status === "in_use" ? "green" : "amber"}" style="position:absolute;right:6px;bottom:6px">${a.status === "in_use" ? `${a.productIds.length} product${a.productIds.length === 1 ? "" : "s"}` : "Unused"}</span>
+        </button>`).join("") || '<p class="muted">No uploaded images yet.</p>';
+    };
+    drawPick("");
+    modal.$("#pick-q").addEventListener("input", ev => drawPick(ev.target.value));
+    modal.$("#pick-grid").addEventListener("click", ev => {
+      const pick = ev.target.closest("[data-pick]");
+      if (!pick) return;
+      addImage(pick.dataset.pick);
+      modal.close();
+    });
   });
 
   /* ---- review flags ---- */
@@ -392,31 +505,29 @@ async function renderEditor(el, ctx, id) {
       return;
     }
     const isNewCategory = f.categoryId.value === "__new";
-    const body = {
-      name: f.name.value,
-      sku: f.sku.value,
-      generateSku: !product && !f.sku.value.trim(),
-      unit: f.unit.value,
-      description: f.description.value,
-      specs: f.specs.value,
-      price, salePrice,
-      gstRate: f.gstRate.value === "" ? null : Number(f.gstRate.value),
-      hsn: f.hsn.value,
-      minQty: f.minQty.value,
-      status: f.status.value,
-      manualStatus: f.manualStatus.value,
-      lowStockThreshold: f.lowStockThreshold.value,
-      featured: f.featured.checked,
-      sortOrder: f.sortOrder.value,
-      images,
-      ...(isNewCategory ? { newCategoryName: f.newCategoryName.value } : { categoryId: f.categoryId.value }),
-      subcategoryId: isNewCategory ? "" : f.subcategoryId.value
-    };
-    if (isNewCategory && !body.newCategoryName.trim()) {
+    const all = collect();
+    if (isNewCategory && !all.newCategoryName.trim()) {
       showFormErrors(form, { details: { fields: { newCategoryName: "Enter the new category name." } } });
       return;
     }
-    if (!body.generateSku && !product && !body.sku.trim()) delete body.sku;
+
+    let body;
+    if (product) {
+      // Send only what changed, so fields edited elsewhere are not overwritten.
+      body = {};
+      for (const [key, value] of Object.entries(all)) {
+        if (JSON.stringify(value) !== JSON.stringify(initial[key])) body[key] = value;
+      }
+      if ("categoryId" in body || "newCategoryName" in body) body.subcategoryId = all.subcategoryId;
+      if (!Object.keys(body).length) {
+        toast("No changes to save.");
+        return;
+      }
+      body.expectedUpdatedAt = product.updatedAt;
+    } else {
+      body = { ...all, generateSku: !all.sku };
+      if (!body.sku) delete body.sku;
+    }
 
     const button = el.querySelector("#save-btn");
     setBusy(button, true);
@@ -424,13 +535,17 @@ async function renderEditor(el, ctx, id) {
       const saved = product
         ? await api.patch(`/admin/products/${encodeURIComponent(product.id)}`, body)
         : await api.post("/admin/products", body);
-      toast(product ? "Product saved." : `Product ${saved.sku} created.`, "success");
+      toast(product
+        ? "Saved to Firestore. The website shows the change within about 10 seconds."
+        : `Product ${saved.sku} created and saved to Firestore.`, "success");
       if (product) render(el, ctx);
       else ctx.navigate(`products/${saved.id}`);
     } catch (error) {
+      // The form keeps everything the admin typed.
       showFormErrors(form, error);
-      errorBox.textContent = error.message;
+      errorBox.innerHTML = `${esc(error.message)}${error.details?.stale ? ' <button type="button" class="btn btn-outline btn-sm" id="reload-product">Reload latest (discards your edits)</button>' : ""}`;
       errorBox.hidden = false;
+      el.querySelector("#reload-product")?.addEventListener("click", () => render(el, ctx));
       setBusy(button, false);
     }
   });
@@ -455,7 +570,7 @@ async function renderEditor(el, ctx, id) {
   });
 }
 
-/* Resize large photos in the browser so uploads stay small (max 1600px). */
+/* Resize large photos in the browser so uploads stay small (max 1600px JPEG). */
 function resizeImage(file, max = 1600) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -470,7 +585,7 @@ function resizeImage(file, max = 1600) {
       g.fillStyle = "#fff";
       g.fillRect(0, 0, canvas.width, canvas.height);
       g.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL("image/jpeg", 0.86));
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("This photo could not be processed.")), "image/jpeg", 0.86);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("This file could not be read as an image.")); };
     img.src = url;

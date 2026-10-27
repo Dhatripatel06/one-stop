@@ -7,7 +7,9 @@
 ========================================================= */
 
 import { db, FieldValue } from "./firebase.js";
-import { Validator, cleanImageUrl } from "./validate.js";
+import { Validator } from "./validate.js";
+import { imageStatus, localImageExists, normalizeImagePath, toPublicPath } from "./local-images.js";
+import { releaseProductImages, resolveProductImages } from "./image-assets.js";
 import { badRequest, conflict, notFound } from "./http.js";
 import { auditEntry, auditRef } from "./audit.js";
 import { actorOf } from "./auth.js";
@@ -53,11 +55,18 @@ function toIso(value) {
    SERIALISERS
 --------------------------------------------------------- */
 
+// Legacy records store "OSS_001.jpg"; responses always use "/OSS_001.jpg".
+function publicImages(images) {
+  return (images || []).map(toPublicPath).filter(Boolean);
+}
+
 export function adminView(id, data) {
+  const images = publicImages(data.images);
   return {
     id,
     ...data,
-    images: data.images || [],
+    images,
+    imageStatus: imageStatus(images),
     specs: data.specs || [],
     needsReview: data.needsReview || [],
     availability: availabilityOf(data),
@@ -86,7 +95,8 @@ export function publicView(id, data) {
     minQty: data.minQty || 1,
     unit: data.unit || "pcs",
     specs: data.specs || [],
-    images: (data.images || []).filter(Boolean),
+    // Only photos that exist; the website shows a placeholder otherwise.
+    images: publicImages(data.images).filter(src => normalizeImagePath(src).kind === "external" || localImageExists(src)),
     availability,
     orderable: isOrderable(data),
     featured: Boolean(data.featured),
@@ -156,12 +166,12 @@ function parseImages(raw, v) {
   for (const item of list) {
     const text = String(item ?? "").trim();
     if (!text) continue;
-    const url = cleanImageUrl(text);
-    if (!url) {
-      v.fail("images", `"${text.slice(0, 60)}" is not a valid image. Use an https:// URL or an existing image file name.`);
+    const image = normalizeImagePath(text);
+    if (!image) {
+      v.fail("images", `"${text.slice(0, 60)}" is not a valid image. Upload images through the admin panel.`);
       continue;
     }
-    if (!clean.includes(url)) clean.push(url);
+    if (!clean.includes(image.path)) clean.push(image.path);
   }
   if (clean.length > 8) v.fail("images", "Up to 8 images are allowed.");
   return clean;
@@ -301,6 +311,8 @@ export async function createProduct(input, admin) {
 
     const { result: category, writes: categoryWrites } = await resolveCategories(tx, fields, newCategoryName, actor);
     writes.push(...categoryWrites);
+    const resolved = await resolveProductImages(tx, ref.id, fields.images || [], {});
+    writes.push(resolved.write);
 
     const product = {
       description: "", unit: "pcs", hsn: "", price: null, salePrice: null, gstRate: null,
@@ -308,6 +320,8 @@ export async function createProduct(input, admin) {
       featured: false, sortOrder: 9999, specs: [], images: [],
       ...fields,
       ...category,
+      images: resolved.images,
+      imageAssets: resolved.imageAssets,
       sku,
       trackStock: false,
       stockQty: 0,
@@ -346,6 +360,11 @@ export async function updateProduct(id, input, admin) {
     if (!snap.exists) throw notFound("Product not found.");
     const current = snap.data();
 
+    // Optimistic concurrency: refuse to save over changes made on another device.
+    if (input?.expectedUpdatedAt && toIso(current.updatedAt) !== input.expectedUpdatedAt) {
+      throw conflict("This product was changed by someone else after you opened it. Reload to see the latest version, then reapply your changes.", { stale: true });
+    }
+
     const update = { ...fields };
     const merged = { ...current, ...update };
 
@@ -372,6 +391,13 @@ export async function updateProduct(id, input, admin) {
     if ((update.categoryId && update.categoryId !== current.categoryId) && fields.subcategoryId === undefined) {
       update.subcategoryId = null;
       update.subcategoryName = "";
+    }
+
+    if (fields.images !== undefined) {
+      const resolved = await resolveProductImages(tx, id, fields.images, current);
+      update.images = resolved.images;
+      update.imageAssets = resolved.imageAssets;
+      writes.push(resolved.write);
     }
 
     writes.forEach(write => write());
@@ -414,6 +440,8 @@ export async function deleteProduct(id, admin) {
     if (product.trackStock && (product.stockQty || 0) > 0) {
       throw conflict("This product still has stock recorded. Archive it, or adjust stock to zero first.");
     }
+    const release = await releaseProductImages(tx, id, product);
+    release();
     tx.delete(skuIndex(product.sku));
     tx.delete(ref);
     tx.set(auditRef(), auditEntry(actor, "product.delete", "product", id, { sku: product.sku, name: product.name }));

@@ -4,7 +4,7 @@
    limits the number of functions).
 ========================================================= */
 
-import { ConfigError, isEmulator } from "./firebase.js";
+import { ConfigError, backendStatus, isEmulator } from "./firebase.js";
 import { HttpError, clientIp, rateLimit, readJsonBody, sendJson } from "./http.js";
 import { requireAdmin } from "./auth.js";
 import * as products from "./products.js";
@@ -15,9 +15,10 @@ import * as invoices from "./invoices.js";
 import * as customers from "./customers.js";
 import * as dashboard from "./dashboard.js";
 import * as settings from "./settings.js";
-import * as images from "./images.js";
 import * as csv from "./csv.js";
 import * as admins from "./admins.js";
+import * as imageAssets from "./image-assets.js";
+import { isConfigured as cloudinaryConfigured } from "./cloudinary.js";
 import { renderInvoicePdf } from "./invoice-pdf.js";
 
 /* ---------------------------------------------------------
@@ -26,22 +27,33 @@ import { renderInvoicePdf } from "./invoice-pdf.js";
    project. Access is controlled by Auth, the API and security rules.
 --------------------------------------------------------- */
 
+function imageOptions() {
+  return { provider: "cloudinary", configured: cloudinaryConfigured(), placeholder: "/images/placeholder.svg" };
+}
+
+// Web config for Firebase Auth sign-in in the admin panel. No defaults for a
+// live project: missing values are reported instead of falling back.
 function webConfig() {
   if (isEmulator()) {
     return {
-      firebase: { apiKey: "demo-key", authDomain: "localhost", projectId: process.env.FIREBASE_PROJECT_ID || "demo-oss" },
-      authEmulator: `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099"}`
+      mode: "emulator",
+      firebase: { apiKey: "demo-key", authDomain: "localhost", projectId: process.env.FIREBASE_PROJECT_ID },
+      authEmulator: `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099"}`,
+      images: imageOptions()
     };
   }
-  return {
-    firebase: {
-      apiKey: process.env.FIREBASE_WEB_API_KEY || "AIzaSyBY7FpGggnMnv-IsqG81rjY1ofCWRm48wk",
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || "oss-digital-catalog.firebaseapp.com",
-      projectId: process.env.FIREBASE_PROJECT_ID || "oss-digital-catalog",
-      appId: process.env.FIREBASE_WEB_APP_ID || "1:294933773409:web:3a62fc14daaa9d344cfe20"
-    },
-    authEmulator: null
+  const firebase = {
+    apiKey: process.env.FIREBASE_WEB_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || (process.env.FIREBASE_PROJECT_ID ? `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com` : undefined),
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    appId: process.env.FIREBASE_WEB_APP_ID
   };
+  const missing = [["FIREBASE_WEB_API_KEY", firebase.apiKey], ["FIREBASE_PROJECT_ID", firebase.projectId], ["FIREBASE_WEB_APP_ID", firebase.appId]]
+    .filter(([, value]) => !value).map(([name]) => name);
+  if (missing.length) {
+    throw new HttpError(503, `Admin sign-in is not configured. Register a web app in Firebase and set: ${missing.join(", ")}.`);
+  }
+  return { mode: "live", firebase, authEmulator: null, images: imageOptions() };
 }
 
 function baseUrl(req) {
@@ -81,12 +93,23 @@ const add = (method, pattern, handler, { admin = false, role } = {}) => {
 };
 
 // ---- public
-add("GET", "/health", () => ({ ok: true, emulator: isEmulator(), time: new Date().toISOString() }));
+add("GET", "/health", ({ res }) => {
+  const status = backendStatus();
+  // Readiness flags only — never values.
+  const ready = {
+    adminSignIn: Boolean(process.env.FIREBASE_WEB_API_KEY && process.env.FIREBASE_WEB_APP_ID) || status.mode === "emulator",
+    ownerConfigured: Boolean(String(process.env.ADMIN_UIDS || "").trim()),
+    invoiceLinks: String(process.env.INVOICE_LINK_SECRET || "").length >= 32,
+    images: cloudinaryConfigured()
+  };
+  sendJson(res, status.configured ? 200 : 503, { ok: status.configured, ...status, ready, time: new Date().toISOString() }, { "Cache-Control": "no-store" });
+});
 add("GET", "/config", () => webConfig());
 
 add("GET", "/catalog", async ({ res }) => {
   const [list, cats, biz] = await Promise.all([products.listPublicProducts(), categories.listPublicCategories(), settings.getSettings()]);
-  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=300");
+  // Short shared cache so admin changes reach customers within seconds.
+  res.setHeader("Cache-Control", "public, max-age=0, s-maxage=10, stale-while-revalidate=30");
   return { products: list, categories: cats, settings: settings.publicSettings(biz) };
 });
 
@@ -94,7 +117,7 @@ add("GET", "/products/:sku", async ({ params, res }) => {
   const product = await products.getPublicProductBySku(decodeURIComponent(params.sku));
   const [all, biz] = await Promise.all([products.listPublicProducts(), settings.getSettings()]);
   const related = all.filter(p => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 8);
-  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=300");
+  res.setHeader("Cache-Control", "public, max-age=0, s-maxage=10, stale-while-revalidate=30");
   return { product, related, settings: settings.publicSettings(biz) };
 });
 
@@ -146,8 +169,12 @@ add("PATCH", "/admin/categories/:id", ({ params, body, admin }) => categories.up
 add("POST", "/admin/categories/:id/archive", ({ params, body, admin }) => categories.archiveCategory(params.id, body, admin), A);
 add("POST", "/admin/categories/:id/restore", ({ params, admin }) => categories.restoreCategory(params.id, admin), A);
 
-add("POST", "/admin/images", ({ body, admin }) => images.uploadImage(body, admin), A);
-add("POST", "/admin/images/import", ({ body, admin }) => images.importImageFromUrl(body, admin), A);
+// Product images: Cloudinary, uploaded by the browser with a server signature.
+add("POST", "/admin/images/signature", ({ body }) => imageAssets.uploadSignature(body), A);
+add("POST", "/admin/images/confirm", ({ body, admin }) => imageAssets.confirmUpload(body, admin), A);
+add("POST", "/admin/images/import-url", ({ body, admin }) => imageAssets.importFromUrl(body, admin), A);
+add("GET", "/admin/images/assets", ({ query }) => imageAssets.listAssets({ status: query.get("status") || undefined }), A);
+add("DELETE", "/admin/images/assets/:id", ({ params, admin }) => imageAssets.deleteAsset(params.id, admin), OWNER);
 
 add("GET", "/admin/orders", ({ query }) => orders.listOrders({
   status: query.get("status") || undefined, q: query.get("q") || undefined,

@@ -1,8 +1,11 @@
 /* =========================================================
    LOCAL DEVELOPMENT SERVER
    Serves the static site and the same API router Vercel runs.
-   By default it talks to the Firebase emulators (npm run emulators).
-   Usage: node scripts/dev-server.mjs [--port 3000]
+   Usage:
+     npm run dev        emulator mode (default) — needs `npm run emulators`
+     npm run dev:live   live Firebase project from .env.local (FIREBASE_PROJECT_ID
+                        + service account). Never chosen automatically.
+   Options: --port 3000
 ========================================================= */
 
 import fs from "node:fs";
@@ -12,23 +15,39 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-// Minimal .env loader (no dependency).
-for (const file of [".env.local", ".env"]) {
-  const full = path.join(root, file);
-  if (!fs.existsSync(full)) continue;
-  for (const line of fs.readFileSync(full, "utf8").split(/\r?\n/)) {
-    const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-    if (match && process.env[match[1]] === undefined) process.env[match[1]] = match[2].replace(/^["']|["']$/g, "");
-  }
+import { loadEnv } from "./load-env.mjs";
+loadEnv();
+
+const LIVE = process.argv.includes("--live");
+const EMULATOR_VARS = ["FIRESTORE_EMULATOR_HOST", "FIREBASE_AUTH_EMULATOR_HOST", "FIREBASE_STORAGE_EMULATOR_HOST"];
+
+function fail(message) {
+  console.error(`
+✖ ${message}
+`);
+  process.exit(1);
 }
 
-if (process.env.USE_EMULATORS !== "0") {
+if (LIVE) {
+  process.env.FIREBASE_MODE = "live";
+  const set = EMULATOR_VARS.filter(name => process.env[name]);
+  if (set.length) fail(`Live mode requested but ${set.join(", ")} is set. Remove emulator variables to use the live project.`);
+  if (!process.env.FIREBASE_PROJECT_ID) fail("Live mode needs FIREBASE_PROJECT_ID (one-stop-72ee5) in .env.local.");
+} else {
+  process.env.FIREBASE_MODE = "emulator";
   process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
   process.env.FIREBASE_AUTH_EMULATOR_HOST ||= "127.0.0.1:9099";
   process.env.FIREBASE_STORAGE_EMULATOR_HOST ||= "127.0.0.1:9199";
-  process.env.FIREBASE_PROJECT_ID ||= "demo-oss";
-  process.env.FIREBASE_STORAGE_BUCKET ||= "demo-oss.appspot.com";
+  // A demo-* project ID guarantees the emulators never reach real resources,
+  // even if .env.local names the live project.
+  process.env.FIREBASE_PROJECT_ID = process.env.EMULATOR_PROJECT_ID || "demo-oss";
+  process.env.FIREBASE_STORAGE_BUCKET = `${process.env.FIREBASE_PROJECT_ID}.appspot.com`;
   process.env.INVOICE_LINK_SECRET ||= "local-development-secret-not-for-production-use";
+  try {
+    await fetch(`http://${process.env.FIRESTORE_EMULATOR_HOST}/`, { signal: AbortSignal.timeout(3000) });
+  } catch {
+    fail(`The Firestore emulator is not running at ${process.env.FIRESTORE_EMULATOR_HOST}. Start it with "npm run emulators" (needs Java 21+). The live project is never used as a fallback; use "npm run dev:live" for that.`);
+  }
 }
 
 const { handle } = await import("../server/router.js");
@@ -84,5 +103,12 @@ http.createServer((req, res) => {
   serveStatic(req, res);
 }).listen(port, () => {
   console.log(`OSS dev server: http://localhost:${port}`);
-  console.log(process.env.FIRESTORE_EMULATOR_HOST ? `Using Firebase emulators (project ${process.env.FIREBASE_PROJECT_ID}).` : "Using live Firebase credentials from the environment.");
+  if (LIVE) {
+    console.log(`
+⚠  LIVE Firebase project: ${process.env.FIREBASE_PROJECT_ID}. Changes you make are saved to the real database.
+`);
+  } else {
+    console.log(`Using Firebase emulators (project ${process.env.FIREBASE_PROJECT_ID}). Nothing is written to a live project.`);
+  }
+  console.log(process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_URL ? "Cloudinary: configured (product image uploads are live, even in emulator mode)." : "Cloudinary: NOT configured — admin image uploads are disabled.");
 });

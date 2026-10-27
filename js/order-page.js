@@ -65,7 +65,7 @@ function lineHtml(line) {
   const total = p.effectivePrice !== null ? money(p.effectivePrice * line.qty) : "Price on request";
   return `
     <div class="line-item" data-line="${escapeHtml(line.sku)}">
-      <a href="${productUrl(p)}"><img src="${escapeHtml(imageOf(p))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'"></a>
+      <a href="${productUrl(p)}"><img src="${escapeHtml(imageOf(p, 200))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'"></a>
       <div>
         <h3><a href="${productUrl(p)}">${escapeHtml(displayName(p.name))}</a></h3>
         <p class="meta">${escapeHtml(p.sku)} · ${p.effectivePrice !== null ? `${money(p.effectivePrice)} each` : "Price on request"}${p.minQty > 1 ? ` · Min. ${p.minQty}` : ""}</p>

@@ -121,7 +121,7 @@ function lineEditor(container, products, initial, { onChange } = {}) {
       const q = picker.value.trim().toLowerCase();
       const matches = q ? products.filter(p => p.status === "active" && `${p.sku} ${p.name}`.toLowerCase().includes(q)).slice(0, 12) : [];
       results.hidden = !matches.length;
-      results.innerHTML = matches.map(p => `<button type="button" data-pick="${esc(p.sku)}"><img src="${esc(p.images[0] || "538820.jpg")}" alt=""><span style="flex:1"><strong>${esc(p.name)}</strong><br><span class="muted small">${esc(p.sku)} · ${p.effectivePrice === null ? "price on request" : money(p.effectivePrice)} · ${esc(p.availability.replace(/_/g, " "))}</span></span></button>`).join("");
+      results.innerHTML = matches.map(p => `<button type="button" data-pick="${esc(p.sku)}"><img src="${esc(p.images[0] || "/images/placeholder.svg")}" alt=""><span style="flex:1"><strong>${esc(p.name)}</strong><br><span class="muted small">${esc(p.sku)} · ${p.effectivePrice === null ? "price on request" : money(p.effectivePrice)} · ${esc(p.availability.replace(/_/g, " "))}</span></span></button>`).join("");
     });
     results.addEventListener("click", e => {
       const pick = e.target.closest("[data-pick]");
@@ -338,7 +338,7 @@ async function renderDetail(el, ctx, id) {
             <thead><tr><th>Product</th><th class="right">Qty</th><th class="right">Unit price</th><th class="right">Discount</th>${order.taxSnapshot?.mode === "gst" ? '<th class="right">GST</th>' : ""}<th class="right">Total</th><th>Stock</th></tr></thead>
             <tbody>${order.items.map(i => `
               <tr>
-                <td class="cell-main"><div class="cell-product"><img class="thumb" src="${esc(i.image || "538820.jpg")}" alt=""><div><span class="name">${esc(i.name)}</span><div class="muted small">${esc(i.sku)}${i.priceSource === "admin" ? " · custom price" : ""}</div></div></div></td>
+                <td class="cell-main"><div class="cell-product"><img class="thumb" src="${esc(i.image || "/images/placeholder.svg")}" alt=""><div><span class="name">${esc(i.name)}</span><div class="muted small">${esc(i.sku)}${i.priceSource === "admin" ? " · custom price" : ""}</div></div></div></td>
                 <td data-label="Qty" class="right num">${i.qty} ${esc(i.unit || "")}</td>
                 <td data-label="Unit price" class="right num">${i.unitPrice === null ? '<span class="badge amber">Not set</span>' : money(i.unitPrice)}</td>
                 <td data-label="Discount" class="right num">${i.discount ? `-${money(i.discount)}` : "—"}</td>

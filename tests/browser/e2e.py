@@ -4,8 +4,12 @@ Browser end-to-end tests (Playwright, Chromium).
 Prerequisites (local, emulator data only):
     npm run emulators            # terminal 1 (JDK 21+)
     npm run seed:emulator        # resets + seeds the emulator
-    ADMIN_UIDS=owner-test-uid npm run dev   # terminal 2
+    CLOUDINARY_FOLDER=oss-test ADMIN_UIDS=owner-test-uid npm run dev   # terminal 2
     python tests/browser/e2e.py [base_url]
+
+Image checks upload to the real Cloudinary account from .env, under the
+throw-away folder "oss-test" (start the dev server with CLOUDINARY_FOLDER=oss-test),
+and delete what they upload. They are skipped when Cloudinary is not configured.
 
 Screenshots are written to tests/browser/screenshots/ (git-ignored).
 """
@@ -19,6 +23,8 @@ BASE = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000"
 OUT = os.path.join(os.path.dirname(__file__), "screenshots")
 os.makedirs(OUT, exist_ok=True)
 PASSWORD = "Test@12345"
+PHOTO_A = os.path.join(os.path.dirname(__file__), "..", "..", "OSS_035.jpg")
+PHOTO_B = os.path.join(os.path.dirname(__file__), "..", "..", "OSS_036.jpg")
 results = []
 
 
@@ -30,6 +36,18 @@ def check(name, fn):
     except Exception as error:  # noqa: BLE001 - report every failure and continue
         results.append((name, False, str(error).splitlines()[0][:300]))
         print(f"  FAIL  {name}: {str(error).splitlines()[0][:300]}")
+
+
+def cloudinary_configured():
+    import json
+    import urllib.request
+    with urllib.request.urlopen(f"{BASE}/api/config") as response:
+        return bool(json.load(response).get("images", {}).get("configured"))
+
+
+def skip(name, reason):
+    results.append((name, True, f"skipped: {reason}"))
+    print(f"  SKIP  {name} ({reason})")
 
 
 def no_overflow(page, label):
@@ -81,7 +99,7 @@ with sync_playwright() as p:
     def correct_image():
         page.goto(f"{BASE}/product.html?sku=OSS_014", wait_until="networkidle")
         src = page.get_attribute("#gallery-main img", "src")
-        assert src == "OSS_014.jpg", src
+        assert src == "/OSS_014.jpg", src
         assert page.evaluate("document.querySelector('#gallery-main img').naturalWidth") > 0
     check("4. product shows its own photograph", correct_image)
 
@@ -126,6 +144,9 @@ with sync_playwright() as p:
         expect(page.locator("#login-error")).to_contain_text("not authorized")
     check("17. non-admin account is refused", unauthorized)
 
+    CLOUDINARY = cloudinary_configured()
+    uploaded = {}
+
     def create_product():
         admin_login(page, "owner@oss.test")
         page.wait_for_selector(".stats")
@@ -135,14 +156,15 @@ with sync_playwright() as p:
         page.fill('[name="sku"]', "OSS_900")
         page.select_option('[name="categoryId"]', "home-and-kitchen")
         page.fill('[name="price"]', "499")
-        page.fill("#image-url", "OSS_035.jpg")
-        page.click("#preview-url")
-        page.wait_for_selector("#add-url:not([disabled])")
-        page.click("#add-url")
+        if CLOUDINARY:
+            page.set_input_files("#image-file", PHOTO_A)
+            page.wait_for_selector('#images .img-tile img[src*="res.cloudinary.com"]', timeout=60000)
+            uploaded["a"] = page.get_attribute("#images .img-tile img", "src")
         page.click("#save-btn")
         page.wait_for_url(re.compile(r"#/products/[^n]"))
         page.wait_for_selector("text=OSS_900")
-    check("5. create a product with image preview", create_product)
+        uploaded["id"] = page.url.split("#/products/")[1]
+    check("5. create a product (with a signed Cloudinary upload and preview)", create_product)
 
     def duplicate_sku():
         page.goto(f"{BASE}/admin.html#/products/new")
@@ -155,25 +177,53 @@ with sync_playwright() as p:
     check("8. duplicate SKU is refused in the form", duplicate_sku)
 
     def update_image():
-        page.goto(f"{BASE}/admin.html#/products/OSS_001")
-        page.wait_for_selector("#product-form")
-        page.fill("#image-url", "OSS_038.jpg")
-        page.click("#preview-url")
-        page.wait_for_selector("#add-url:not([disabled])")
-        page.click("#add-url")
-        page.click('#images [data-index="1"] [data-img="first"]')
-        page.fill('[name="price"]', "199")
+        if not CLOUDINARY:
+            return
+        page.goto(f"{BASE}/admin.html#/products/{uploaded['id']}")
+        page.wait_for_selector("#images .img-tile")
+        # Replace the main photo with a different one.
+        with page.expect_file_chooser() as chooser:
+            page.click('#images [data-index="0"] [data-img="replace"]')
+        chooser.value.set_files(PHOTO_B)
+        page.wait_for_function(
+            "(previous) => document.querySelector('#images .img-tile img').src !== previous", arg=uploaded["a"], timeout=60000)
         page.click("#save-btn")
         page.wait_for_selector(".toast.success")
         page.reload(wait_until="load")
         page.wait_for_selector("#images img")
-        assert page.get_attribute('#images [data-index="0"] img', "src") == "OSS_038.jpg"
-        # restore the verified photo as main image
-        page.click('#images [data-index="1"] [data-img="first"]')
-        page.click('#images [data-index="1"] [data-img="remove"]')
+        replaced = page.get_attribute("#images .img-tile img", "src")
+        assert "res.cloudinary.com" in replaced and replaced != uploaded["a"], replaced
+        uploaded["b"] = replaced
+        # The customer site shows the new image, resized and delivered by Cloudinary.
+        page.goto(f"{BASE}/product.html?sku=OSS_900", wait_until="networkidle")
+        shown = page.get_attribute("#gallery-main img", "src")
+        assert "res.cloudinary.com" in shown and "f_auto" in shown, shown
+        assert page.evaluate("document.querySelector('#gallery-main img').naturalWidth") > 0
+    check("6+19. replace a product image; change persists after refresh and reaches the site", update_image)
+
+    def image_library_cleanup():
+        if not CLOUDINARY:
+            return
+        page.goto(f"{BASE}/admin.html#/products/{uploaded['id']}")
+        page.wait_for_selector("#images .img-tile")
+        page.click('#images [data-index="0"] [data-img="remove"]')
         page.click("#save-btn")
         page.wait_for_selector(".toast.success")
-    check("6+19. update image URL; change persists after refresh", update_image)
+        page.goto(f"{BASE}/admin.html#/images?status=unused")
+        page.wait_for_selector("[data-delete]")
+        count = page.locator("[data-delete]").count()
+        assert count >= 2, f"expected the replaced and removed images to be unused, got {count}"
+        for _ in range(count):
+            page.locator("[data-delete]:not([disabled])").first.click()
+            page.click("[data-ok]")
+            page.wait_for_selector("text=Image deleted from Cloudinary.")
+            # the list reloads after each deletion; wait for it before the next click
+            page.wait_for_function("() => document.querySelectorAll('[data-delete][disabled]').length === 0")
+            page.wait_for_timeout(300)
+        assert page.locator("[data-delete]").count() == 0
+        page.goto(f"{BASE}/admin.html#/images?status=deleted")
+        page.wait_for_selector("text=Deleted from Cloudinary")
+    check("6b. removed images become unused and the owner can delete them", image_library_cleanup)
 
     def update_stock():
         page.goto(f"{BASE}/admin.html#/inventory/OSS_002")

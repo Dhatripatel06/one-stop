@@ -16,6 +16,7 @@ let auth = null;
 let me = null;
 let emulator = false;
 let loginMessage = "";
+let appConfig = null;
 
 const NAV = [
   ["dashboard", "Dashboard", icons.dashboard],
@@ -24,6 +25,7 @@ const NAV = [
   ["products", "Products", icons.products],
   ["inventory", "Inventory", icons.inventory],
   ["categories", "Categories", icons.categories],
+  ["images", "Images", icons.images],
   ["customers", "Customers", icons.customers],
   ["settings", "Settings", icons.settings]
 ];
@@ -37,7 +39,8 @@ const VIEWS = {
   categories: () => import("./views/categories.js"),
   customers: () => import("./views/customers.js"),
   settings: () => import("./views/settings.js"),
-  import: () => import("./views/import.js")
+  import: () => import("./views/import.js"),
+  images: () => import("./views/images.js")
 };
 
 /* ---------------- sign in ---------------- */
@@ -120,6 +123,7 @@ function renderShell() {
         </nav>
         <div class="side-foot">
           <span class="who">${esc(me.email)}<br><span class="muted" style="color:rgba(255,255,255,.6)">${me.role === "owner" ? "Owner" : "Staff"}</span></span>
+          <span class="muted" style="color:rgba(255,255,255,.6)">${emulator ? "Emulator data" : `Firebase: ${esc(appConfig?.firebase?.projectId || "")}`}</span>
           <a href="index.html" target="_blank" rel="noopener">View public catalogue ↗</a>
           <button type="button" id="logout-btn">Sign out</button>
         </div>
@@ -179,7 +183,7 @@ async function route() {
   try {
     const module = await loader();
     if (token !== renderToken) return;
-    await module.render(el, { params, query, admin: me, navigate, isCurrent: () => token === renderToken });
+    await module.render(el, { params, query, admin: me, navigate, config: appConfig, isCurrent: () => token === renderToken });
     if (token === renderToken) el.focus({ preventScroll: true });
   } catch (error) {
     console.error(error);
@@ -195,13 +199,15 @@ async function boot() {
   let config;
   try {
     const response = await fetch("/api/config");
-    if (!response.ok) throw new Error(`Configuration unavailable (${response.status}).`);
-    config = await response.json();
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `Configuration unavailable (${response.status}).`);
+    config = data;
   } catch (error) {
     app.innerHTML = `<div class="login"><div class="login-card"><h1>Admin unavailable</h1><p class="sub">${esc(error.message)}</p><button class="btn btn-primary btn-block" onclick="location.reload()">Try again</button></div></div>`;
     return;
   }
 
+  appConfig = config;
   emulator = Boolean(config.authEmulator);
   auth = getAuth(initializeApp(config.firebase));
   if (config.authEmulator) connectAuthEmulator(auth, config.authEmulator, { disableWarnings: true });

@@ -2,14 +2,31 @@
 
 import http from "node:http";
 
+process.env.FIREBASE_MODE = "emulator";
 process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
 process.env.FIREBASE_AUTH_EMULATOR_HOST ||= "127.0.0.1:9099";
 process.env.FIREBASE_STORAGE_EMULATOR_HOST ||= "127.0.0.1:9199";
-process.env.FIREBASE_PROJECT_ID ||= "demo-oss";
+process.env.FIREBASE_PROJECT_ID = "demo-oss";
 process.env.FIREBASE_STORAGE_BUCKET ||= "demo-oss.appspot.com";
 process.env.INVOICE_LINK_SECRET ||= "integration-test-secret-0123456789abcdef";
 process.env.ADMIN_UIDS = "it-owner";
 process.env.ORDER_RATE_LIMIT = "1000";
+
+// Cloudinary: fake credentials keep tests offline. CLOUDINARY_LIVE_TESTS=1 uses the
+// real account from .env, uploading only under the throw-away folder "oss-test".
+const LIVE_CLOUDINARY = process.env.CLOUDINARY_LIVE_TESTS === "1";
+if (LIVE_CLOUDINARY) {
+  const { loadEnv } = await import("../../scripts/load-env.mjs");
+  loadEnv([".env.local", ".env"], /^CLOUDINARY_/);
+  process.env.CLOUDINARY_FOLDER = "oss-test";
+} else {
+  process.env.CLOUDINARY_CLOUD_NAME = "demo-cloud";
+  process.env.CLOUDINARY_API_KEY = "123456789012345";
+  process.env.CLOUDINARY_API_SECRET = "offline-test-secret";
+  delete process.env.CLOUDINARY_URL;
+  process.env.CLOUDINARY_FOLDER = "oss/products";
+}
+export { LIVE_CLOUDINARY };
 
 const { handle } = await import("../../server/router.js");
 const { auth, db } = await import("../../server/firebase.js");

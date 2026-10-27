@@ -6,9 +6,10 @@
    Password for all: Test@12345
 ========================================================= */
 
+process.env.FIREBASE_MODE = "emulator";
 process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
 process.env.FIREBASE_AUTH_EMULATOR_HOST ||= "127.0.0.1:9099";
-process.env.FIREBASE_PROJECT_ID ||= "demo-oss";
+process.env.FIREBASE_PROJECT_ID = process.env.EMULATOR_PROJECT_ID || "demo-oss";
 
 const { auth, db } = await import("../server/firebase.js");
 

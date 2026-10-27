@@ -6,7 +6,7 @@ import { cart } from "./cart.js";
 import { formatINR } from "../shared/pricing.js";
 import { AVAILABILITY } from "../shared/constants.js";
 
-export const FALLBACK_IMAGE = "538820.jpg";
+export const FALLBACK_IMAGE = "/images/placeholder.svg";
 
 export const DEFAULT_BUSINESS = {
   businessName: "ONE STOP SOLUTION (OSS)",
@@ -69,8 +69,16 @@ export function productUrl(product) {
   return `product.html?sku=${encodeURIComponent(product.sku)}`;
 }
 
-export function imageOf(product) {
-  return product?.images?.[0] || product?.image || FALLBACK_IMAGE;
+// Cloudinary images are resized and served in the best format for the browser.
+export function imageUrl(src, width) {
+  if (!src) return FALLBACK_IMAGE;
+  const match = String(src).match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/);
+  if (!match || !width) return src;
+  return `${match[1]}f_auto,q_auto,c_limit,w_${width}/${match[2]}`;
+}
+
+export function imageOf(product, width) {
+  return imageUrl(product?.images?.[0] || product?.image, width);
 }
 
 export function waUrl(number, message) {
@@ -124,7 +132,7 @@ export function productCardHtml(product, business = DEFAULT_BUSINESS) {
   return `
     <article class="card" data-sku="${escapeHtml(product.sku)}">
       <a class="card-media" href="${productUrl(product)}" tabindex="-1" aria-hidden="true">
-        <img src="${escapeHtml(imageOf(product))}" alt="" loading="lazy" decoding="async" width="400" height="400" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
+        <img src="${escapeHtml(imageOf(product, 600))}" alt="" loading="lazy" decoding="async" width="400" height="400" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
         ${product.availability !== "in_stock" ? badgeHtml(product.availability) : ""}
       </a>
       <div class="card-body">

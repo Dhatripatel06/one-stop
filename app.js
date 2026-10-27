@@ -136,7 +136,7 @@ function renderHero() {
   }
   $("#hero-mosaic").innerHTML = picks.slice(0, 4).map(p => `
     <a class="hero-tile" href="product.html?sku=${encodeURIComponent(p.sku)}" tabindex="-1">
-      <img src="${escapeHtml(imageOf(p))}" alt="" width="400" height="400" fetchpriority="high">
+      <img src="${escapeHtml(imageOf(p, 600))}" alt="" width="400" height="400" fetchpriority="high">
       <figcaption>${escapeHtml(displayName(p.name))}</figcaption>
     </a>`).join("");
 
@@ -150,7 +150,7 @@ function renderCategories() {
     const product = state.products.find(p => p.categoryId === c.id && p.images.length);
     return `
       <button type="button" class="category-tile reveal" data-category-tile="${escapeHtml(c.id)}">
-        <span class="thumb">${product ? `<img src="${escapeHtml(imageOf(product))}" alt="" loading="lazy" width="200" height="150">` : ""}</span>
+        <span class="thumb">${product ? `<img src="${escapeHtml(imageOf(product, 400))}" alt="" loading="lazy" width="200" height="150">` : ""}</span>
         <span class="label"><strong>${escapeHtml(c.name)}</strong><span>${c.productCount} product${c.productCount === 1 ? "" : "s"}</span></span>
       </button>`;
   }).join("");

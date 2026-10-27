@@ -4,7 +4,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 30,
-      "includeFiles": "{server/fonts/**,538820.jpg}"
+      "includeFiles": "{server/fonts/**,538820.jpg,images/manifest.json}"
     }
   },
   "rewrites": [

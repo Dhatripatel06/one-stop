@@ -13,10 +13,14 @@
     "test": "node --test \"tests/unit/*.test.js\"",
     "test:integration": "firebase emulators:exec --only firestore,auth,storage --project demo-oss \"node --test --test-concurrency=1 tests/integration/*.test.js\"",
     "check": "node scripts/check.mjs",
-    "build": "node scripts/check.mjs",
+    "check:production": "node scripts/check-production.mjs",
+    "build": "node scripts/check.mjs --build",
     "migrate": "node scripts/migrate.mjs",
     "seed:emulator": "node scripts/migrate.mjs --seed-legacy --apply && node scripts/emulator-users.mjs",
-    "test:browser": "python tests/browser/e2e.py"
+    "test:browser": "python tests/browser/e2e.py",
+    "dev:live": "node scripts/dev-server.mjs --live",
+    "test:cloudinary": "node scripts/test-cloudinary-live.mjs",
+    "migrate:images": "node scripts/migrate-images.mjs"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0",

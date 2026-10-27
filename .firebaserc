@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "oss-digital-catalog"
-  }
+    "default": "one-stop-72ee5",
+    "development": "one-stop-72ee5"
+  },
+  "targets": {},
+  "etags": {}
 }
