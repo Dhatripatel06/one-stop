@@ -12,7 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BUILD = process.argv.includes("--build");
@@ -91,6 +91,21 @@ if (BUILD) {
   const onDisk = listLocalImages();
   const listed = before ? JSON.parse(before).images : [];
   if (JSON.stringify(onDisk) !== JSON.stringify(listed)) problems.push("images/manifest.json is out of date. Run npm run build.");
+}
+
+// 8. The API must load on this Node.js. Vercel builds and runs the function on
+//    the same version, so a runtime that cannot load firebase-admin (its
+//    jwks-rsa dependency require()s the ESM-only `jose`) fails here instead of
+//    crashing every /api request in production.
+const adminEngines = JSON.parse(fs.readFileSync(path.join(root, "node_modules", "firebase-admin", "package.json"), "utf8")).engines?.node || "";
+const minMajor = Number(adminEngines.match(/\d+/)?.[0] || 0);
+if (Number(process.versions.node.split(".")[0]) < minMajor) {
+  problems.push(`Node.js ${process.version} is older than firebase-admin requires (${adminEngines}). Set "engines.node" in package.json.`);
+}
+try {
+  await import(pathToFileURL(path.join(root, "api", "index.js")).href);
+} catch (error) {
+  problems.push(`The API cannot load on Node.js ${process.version}: ${error.code || ""} ${error.message.split("\n")[0]}`);
 }
 
 if (problems.length) {
