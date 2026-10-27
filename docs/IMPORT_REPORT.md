@@ -1,6 +1,6 @@
 # OSS Catalogue Import Report
 
-Generated: 2026-10-27T05:20:18.184Z
+Generated: 2026-10-27T06:53:05.568Z
 
 Sources, in priority order: local project files (products.json, images), legacy Firestore `products` collection (snapshot in `data/legacy-firestore-products.json`), live site https://oss-vert.vercel.app (identical to the repository apart from line endings), Instagram @onestopsolution4325 (only profile metadata is public: 36 posts; post content requires login and was not accessed).
 
@@ -76,7 +76,7 @@ Seven `.webp` files (OSS_008, 011, 013, 016, 020, 022, 024) are byte-identical c
 
 - OSS_040: Copied from the hotlinked URL (https://i.ibb.co/chBWJN2V/IMG-20261001-WA0016.jpg) into the project.
 
-## Conflicting records (8)
+## Conflicting records (9)
 
 - **OSS_008 · image** — products.json: OSS_008.jpg vs Firestore: OSS_008.webp. Kept OSS_008.jpg: visually confirmed to show "HOT AND COLD DORI BOTTLE". OSS_008.webp is a byte-identical copy of a different product's photo.
 - **OSS_011 · image** — products.json: OSS_011.jpg vs Firestore: OSS_011.webp. Kept OSS_011.jpg: visually confirmed to show "PLUG MOSQUITO KILLER LAMP". OSS_011.webp is a byte-identical copy of a different product's photo.
@@ -86,6 +86,7 @@ Seven `.webp` files (OSS_008, 011, 013, 016, 020, 022, 024) are byte-identical c
 - **OSS_022 · image** — products.json: OSS_022.jpg vs Firestore: OSS_022.webp. Kept OSS_022.jpg: visually confirmed to show "ALL IN ONE 60W USB FAST CHARGING TRAVEL DATA CABLE SET". OSS_022.webp is a byte-identical copy of a different product's photo.
 - **OSS_024 · image** — products.json: OSS_024.jpg vs Firestore: OSS_024.webp. Kept OSS_024.jpg: visually confirmed to show "SLIM FLOOR WIPER MOP WITH SILICONE BLADE & TELESCOPIC HANDLE". OSS_024.webp is a byte-identical copy of a different product's photo.
 - **OSS_038 · name** — products.json: Self Adhesive Door Bottom Sealing Strip Guard vs Firestore: SELF ADHESIVE DOOR BOTTOM SEALING STRIP GUARD. Same text, different letter case — used the upper-case Firestore version to match the rest of the catalogue.
+- **OSS_039 · stock status** — status: In Stock vs stock: Coming Soon. Kept "In Stock": the old site and admin showed `status` first. Confirm the current availability.
 
 ## Duplicate records
 

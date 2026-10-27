@@ -132,7 +132,12 @@ async function main() {
   const codes = [...new Set([...masterByCode.keys(), ...legacyByCode.keys()])]
     .sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
 
-  const report = { imported: [], images: [], conflicts: [], missing: [], review: [], skipped: [], duplicates };
+  // Existing records are never overwritten: categories are only created when
+  // missing, and a SKU already owned by another product blocks that product.
+  const existingCategories = new Set((await db().collection("categories").get()).docs.map(doc => doc.id));
+  const skuOwners = new Map((await db().collection("skuIndex").get()).docs.map(doc => [doc.id, doc.get("productId")]));
+
+  const report = { imported: [], images: [], conflicts: [], missing: [], review: [], skipped: [], blocked: [], duplicates };
   const categories = new Map();
   const products = [];
 
@@ -140,6 +145,11 @@ async function main() {
     if (migrated.has(code)) { report.skipped.push(code); continue; }
     const base = masterByCode.get(code);
     const live = legacyByCode.get(code);
+    const targetId = live?.id || code;
+    if (skuOwners.has(code) && skuOwners.get(code) !== targetId) {
+      report.blocked.push({ code, note: `SKU already belongs to product ${skuOwners.get(code)}; not imported.` });
+      continue;
+    }
     const liveLabel = live?.fromSnapshot ? "Firestore snapshot (oss-digital-catalog)" : "Firestore";
     const source = base && live ? `products.json + ${liveLabel}` : base ? "products.json" : `${liveLabel} (added by admin)`;
 
@@ -181,6 +191,9 @@ async function main() {
     if (image) report.images.push({ code, image, status: imageStatus });
 
     const statusText = String(live?.status || live?.stock || base?.status || "In Stock").toLowerCase();
+    if (live?.status && live?.stock && live.status.trim().toLowerCase() !== live.stock.trim().toLowerCase()) {
+      report.conflicts.push({ code, field: "stock status", values: [`status: ${live.status}`, `stock: ${live.stock}`], resolution: `Kept "${live.status}": the old site and admin showed \`status\` first. Confirm the current availability.` });
+    }
     const needsReview = [
       { field: "price", note: "No verified price in the existing catalogue. Add a price or leave as \"Price on request\"." },
       { field: "stock", note: "No verified stock count. Record the initial stock in Inventory to enable stock tracking." }
@@ -193,9 +206,10 @@ async function main() {
     }
 
     products.push({
-      id: live?.id || code,
+      id: targetId,
       code,
       source,
+      convertsLegacy: Boolean(live && !live.fromSnapshot),
       doc: {
         schemaVersion: 2,
         sku: code,
@@ -244,27 +258,32 @@ async function main() {
     if (needsReview.some(r => r.field === "image")) report.review.push({ code, issue: needsReview.find(r => r.field === "image").note });
   }
 
+  // Already-migrated products that no source lists any more (e.g. snapshot-only SKUs).
+  for (const code of migrated) if (!codes.includes(code)) report.skipped.push(code);
+
   report.missing.push({ code: "all", field: "price, sale price, GST rate, HSN", note: "Not present in any source." });
   report.missing.push({ code: "all", field: "stock quantity", note: "Only a status (\"In Stock\") exists; no counts." });
   report.missing.push({ code: "all", field: "description, specifications", note: "Not present in any source." });
+
+  const settingsRef = db().collection("settings").doc("business");
+  const settingsExist = (await settingsRef.get()).exists;
 
   // --- write
   if (APPLY) {
     const writes = [];
     for (const [name, order] of categories) {
       const id = categoryIdFor(name);
-      writes.push(b => b.set(db().collection("categories").doc(id), {
+      if (existingCategories.has(id)) continue;
+      writes.push(b => b.create(db().collection("categories").doc(id), {
         name, description: "", parentId: null, sortOrder: order, archived: false,
         createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true }));
+      }));
     }
     for (const p of products) {
       writes.push(b => b.set(db().collection("products").doc(p.id), p.doc));
       writes.push(b => b.set(db().collection("skuIndex").doc(p.code), { productId: p.id }));
     }
-    const settingsRef = db().collection("settings").doc("business");
-    const settingsSnap = await settingsRef.get();
-    if (!settingsSnap.exists) writes.push(b => b.set(settingsRef, { ...DEFAULT_SETTINGS, createdAt: FieldValue.serverTimestamp() }));
+    if (!settingsExist) writes.push(b => b.set(settingsRef, { ...DEFAULT_SETTINGS, createdAt: FieldValue.serverTimestamp() }));
     writes.push(b => b.set(db().collection("auditLog").doc(), {
       action: "migration.v2", entity: "catalogue", entityId: "*", actor: { uid: "system", email: "" },
       details: { products: products.length, categories: categories.size }, at: FieldValue.serverTimestamp()
@@ -279,7 +298,14 @@ async function main() {
 
   // Keep the last full report when there is nothing left to migrate.
   if (products.length) writeReport(report, categories);
+  const newCategories = [...categories.keys()].filter(name => !existingCategories.has(categoryIdFor(name)));
+  const converted = products.filter(p => p.convertsLegacy).length;
   console.log(`${APPLY ? "Migrated" : "Dry run:"} ${products.length} products, ${categories.size} categories. Skipped ${report.skipped.length} already-migrated.`);
+  console.log(`  products   create ${products.length - converted} · convert legacy in place ${converted} · skip ${report.skipped.length} · blocked ${report.blocked.length} · flagged for image review ${report.review.length}`);
+  console.log(`  categories create ${newCategories.length} · already exist ${categories.size - newCategories.length}`);
+  console.log(`  settings   ${settingsExist ? "already exist (unchanged)" : "create with defaults (minOrderValue 50000 paise = ₹500)"}`);
+  for (const b of report.blocked) console.log(`  BLOCKED ${b.code}: ${b.note}`);
+  for (const r of report.review) console.log(`  REVIEW  ${r.code}: ${r.issue}`);
   if (!APPLY) console.log("Run with --apply to write these changes.");
 }
 
