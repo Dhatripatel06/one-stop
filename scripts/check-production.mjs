@@ -30,13 +30,11 @@ for (const name of ["FIRESTORE_EMULATOR_HOST", "FIREBASE_AUTH_EMULATOR_HOST", "F
 check("FIREBASE_MODE", ["", "live"].includes(env("FIREBASE_MODE").toLowerCase()), 'must be "live" (or unset)');
 
 // ---- Service account (shape and project only)
+const { parseServiceAccount } = await import("../server/firebase.js");
 let account = null;
 if (env("FIREBASE_SERVICE_ACCOUNT")) {
-  try {
-    const raw = env("FIREBASE_SERVICE_ACCOUNT");
-    account = JSON.parse(raw.startsWith("{") ? raw : Buffer.from(raw, "base64").toString("utf8"));
-  } catch { /* reported below */ }
-  check("FIREBASE_SERVICE_ACCOUNT", Boolean(account?.private_key && account?.client_email), "is not a valid service account JSON (raw or base64)");
+  try { account = parseServiceAccount(env("FIREBASE_SERVICE_ACCOUNT")); ok.push("FIREBASE_SERVICE_ACCOUNT"); }
+  catch (error) { problems.push(error.message); }
 } else if (env("FIREBASE_CLIENT_EMAIL") && env("FIREBASE_PRIVATE_KEY")) {
   account = { project_id: EXPECTED_PROJECT, client_email: env("FIREBASE_CLIENT_EMAIL"), private_key: env("FIREBASE_PRIVATE_KEY") };
   check("FIREBASE_PRIVATE_KEY", /BEGIN PRIVATE KEY/.test(account.private_key), "does not look like a PEM private key");

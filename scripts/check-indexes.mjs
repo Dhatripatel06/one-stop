@@ -33,7 +33,36 @@ const QUERIES = [
     .aggregate({ total: AggregateField.sum("balanceDue"), count: AggregateField.count() }).get()]
 ];
 
-console.log(`Index check — ${firebaseMode()} project ${process.env.FIREBASE_PROJECT_ID}${firebaseMode() === "emulator" ? " (the emulator does not enforce indexes; this proves nothing)" : ""}`);
+const mode = firebaseMode();
+console.log(`Index check — ${mode} project ${process.env.FIREBASE_PROJECT_ID}${mode === "emulator" ? " (the emulator does not enforce indexes; this proves nothing)" : ""}`);
+
+// Configuration problems are reported once, not per query.
+try {
+  db();
+} catch (error) {
+  console.log(`  ✖ configuration: ${error.message}`);
+  process.exit(2);
+}
+
+// Deployed composite indexes and their build state (needs datastore.indexes.list).
+if (mode === "live") {
+  try {
+    const { getApp } = await import("firebase-admin/app");
+    const { access_token: token } = await getApp().options.credential.getAccessToken();
+    const response = await fetch(`https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/collectionGroups/-/indexes`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const { indexes = [] } = await response.json();
+    console.log(`Deployed composite indexes: ${indexes.length}`);
+    for (const index of indexes) {
+      const fields = index.fields.filter(f => f.fieldPath !== "__name__").map(f => `${f.fieldPath} ${f.order === "DESCENDING" ? "↓" : "↑"}`).join(", ");
+      console.log(`  ${index.state === "READY" ? "✔" : "…"} ${index.state.padEnd(8)} ${index.name.split("/")[5]}: ${fields}`);
+    }
+  } catch (error) {
+    console.log(`  (index states unavailable with this account: ${error.message}; query checks below still apply)`);
+  }
+}
+
+console.log("Queries:");
 let failed = 0;
 for (const [name, query] of QUERIES) {
   try {
@@ -41,8 +70,13 @@ for (const [name, query] of QUERIES) {
     console.log(`  ✔ ${name}`);
   } catch (error) {
     failed += 1;
-    const missing = /requires an index/i.test(error.message);
-    console.log(`  ✖ ${name}: ${missing ? "missing index (deploy firestore.indexes.json; new indexes take a few minutes to build)" : error.message.split("\n")[0]}`);
+    const message = error.message || "";
+    const reason =
+      /currently building/i.test(message) ? "index still building — wait a few minutes and re-run"
+      : /requires an index/i.test(message) ? "missing index — deploy firestore.indexes.json"
+      : [7, 16].includes(error.code) || /PERMISSION_DENIED|UNAUTHENTICATED/.test(message) ? `authentication/permission error (${message.split("\n")[0]})`
+      : `query error — check the application code (${message.split("\n")[0]})`;
+    console.log(`  ✖ ${name}: ${reason}`);
   }
 }
 process.exit(failed ? 1 : 0);
