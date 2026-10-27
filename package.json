@@ -14,6 +14,7 @@
     "test:integration": "firebase emulators:exec --only firestore,auth,storage --project demo-oss \"node --test --test-concurrency=1 tests/integration/*.test.js\"",
     "check": "node scripts/check.mjs",
     "check:production": "node scripts/check-production.mjs",
+    "check:indexes": "node scripts/check-indexes.mjs",
     "build": "node scripts/check.mjs --build",
     "migrate": "node scripts/migrate.mjs",
     "seed:emulator": "node scripts/migrate.mjs --seed-legacy --apply && node scripts/emulator-users.mjs",

@@ -17,6 +17,32 @@
       ]
     },
     {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "customerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "invoices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "issuedAt", "order": "ASCENDING" },
+        { "fieldPath": "totals.grandTotal", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "invoices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "paymentStatus", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "balanceDue", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "invoices",
       "queryScope": "COLLECTION",
       "fields": [
