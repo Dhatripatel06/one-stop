@@ -25,7 +25,7 @@ export async function render(el, ctx) {
       </div>
     </div>
 
-    <div class="stats">
+    <div class="stats stats-primary">
       <a class="stat ${data.orders.awaitingConfirmation ? "warn" : ""}" href="#/orders?status=pending"><div class="label">Awaiting confirmation</div><div class="value">${data.orders.awaitingConfirmation}</div><div class="hint">New orders to review</div></a>
       <a class="stat" href="#/orders?status=confirmed"><div class="label">Orders to fulfil</div><div class="value">${data.orders.toFulfil}</div><div class="hint">Confirmed or processing</div></a>
       <a class="stat" href="#/invoices"><div class="label">Sales (${esc(date(data.period.from))} – ${esc(date(data.period.to))})</div><div class="value">${money(data.sales.total)}</div><div class="hint">${data.sales.invoices} invoice${data.sales.invoices === 1 ? "" : "s"} issued</div></a>
@@ -40,11 +40,11 @@ export async function render(el, ctx) {
       <a class="stat" href="#/products?filter=review"><div class="label">Needs review</div><div class="value">${p.needsReview}</div><div class="hint">${p.unpriced} without a price${p.missingImages ? ` · ${p.missingImages} without a photo` : ""}</div></a>
     </div>
 
-    <form class="card card-pad toolbar" id="period-form" style="margin-bottom:16px">
-      <strong style="margin-right:auto">Sales period</strong>
-      <label class="sr-only" for="from">From</label><input class="input" type="date" id="from" value="${esc(data.period.from)}" style="width:auto">
+    <form class="card toolbar period-form" id="period-form">
+      <strong>Sales period</strong>
+      <label class="sr-only" for="from">From</label><input class="input" type="date" id="from" value="${esc(data.period.from)}">
       <span class="muted">to</span>
-      <label class="sr-only" for="to">To</label><input class="input" type="date" id="to" value="${esc(data.period.to)}" style="width:auto">
+      <label class="sr-only" for="to">To</label><input class="input" type="date" id="to" value="${esc(data.period.to)}">
       <button class="btn btn-outline" type="submit">Apply</button>
     </form>
 
@@ -67,9 +67,9 @@ export async function render(el, ctx) {
       <section class="card">
         <div class="card-head"><h2>Stock alerts</h2><a href="#/inventory" class="btn btn-ghost btn-sm">Inventory</a></div>
         ${[...p.outOfStockItems.map(i => ({ ...i, kind: "out" })), ...p.lowStockItems.map(i => ({ ...i, kind: "low" }))].map(i => `
-          <a href="#/inventory/${esc(i.id)}" style="display:flex;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit">
-            <img src="${esc(i.image || "/images/placeholder.svg")}" alt="" style="width:36px;height:36px;object-fit:contain">
-            <span style="flex:1;min-width:0"><strong style="display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name)}</strong><span class="muted small">${esc(i.sku)}</span></span>
+          <a class="alert-row" href="#/inventory/${esc(i.id)}">
+            <img src="${esc(i.image || "/images/placeholder.svg")}" alt="">
+            <span class="meta"><strong>${esc(i.name)}</strong><span class="muted small">${esc(i.sku)}</span></span>
             <span class="badge ${i.kind === "out" ? "red" : "amber"}">${i.kind === "out" ? "Out" : `${i.available} left`}</span>
           </a>`).join("") || `<div class="empty"><p>${p.untracked === p.active ? "Stock tracking starts once you record initial stock counts in Inventory." : "No stock alerts."}</p></div>`}
       </section>

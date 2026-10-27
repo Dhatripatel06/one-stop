@@ -53,12 +53,12 @@ function render() {
         <div class="pdp-meta"><span class="sku-pill">${escapeHtml(product.sku)}</span><span>${escapeHtml(product.categoryName)}${product.subcategoryName ? ` · ${escapeHtml(product.subcategoryName)}` : ""}</span></div>
         <h1>${escapeHtml(name)}</h1>
         <div class="card-price pdp-price">${priceHtml(product)}</div>
-        <div>${badgeHtml(product.availability)} <span class="field-hint" style="margin-left:.4rem">${availabilityText(product)}</span></div>
+        <div class="pdp-status">${badgeHtml(product.availability)}<span class="field-hint">${availabilityText(product)}</span></div>
 
         <div class="pdp-panel">
           ${product.orderable ? `
             <div>
-              <label class="field-hint" for="qty-input" style="font-weight:700;color:var(--ink);display:block;margin-bottom:.4rem">Quantity${product.unit ? ` (${escapeHtml(product.unit)})` : ""}</label>
+              <label class="pdp-label" for="qty-input">Quantity${product.unit ? ` (${escapeHtml(product.unit)})` : ""}</label>
               <div class="pdp-buy">
                 <div class="stepper stepper-lg" id="qty-stepper">
                   <button type="button" data-delta="-1" aria-label="Decrease quantity">−</button>
@@ -68,23 +68,23 @@ function render() {
                 <button type="button" class="btn btn-primary btn-lg" id="add-btn">${icon.bag}<span>${inCart ? "Update order" : "Add to order"}</span></button>
               </div>
               <p class="field-error" id="qty-error" role="alert" hidden></p>
-              <p class="field-hint" style="margin-top:.5rem">${min > 1 ? `Minimum order: ${min} ${escapeHtml(product.unit || "pcs")}. ` : ""}${business.minOrderValue ? `Minimum order value ${money(business.minOrderValue)}.` : ""}</p>
+              <p class="field-hint">${min > 1 ? `Minimum order: ${min} ${escapeHtml(product.unit || "pcs")}. ` : ""}${business.minOrderValue ? `Minimum order value ${money(business.minOrderValue)}.` : ""}</p>
             </div>` : `
             <p class="notice ${product.availability === "coming_soon" ? "" : "warn"}">${availabilityText(product)}. You can still ask us about this product on WhatsApp.</p>`}
           <a class="btn btn-wa btn-lg btn-block" href="${waUrl(business.whatsapp, productEnquiryMessage(product, business))}" target="_blank" rel="noopener">${icon.whatsapp}Ask about this product on WhatsApp</a>
           ${inCart ? `<a class="link-arrow" href="order.html">${inCart} in your order — review order ${icon.arrow}</a>` : ""}
         </div>
 
-        ${product.description ? `<div><h2 style="font-size:var(--fs-lg);margin-bottom:.5rem">Description</h2><p class="pdp-desc">${escapeHtml(product.description)}</p></div>` : ""}
+        ${product.description ? `<div class="pdp-section"><h2>Description</h2><p class="pdp-desc">${escapeHtml(product.description)}</p></div>` : ""}
 
         ${specs.length ? `
-          <div>
-            <h2 style="font-size:var(--fs-lg);margin-bottom:.25rem">Specifications</h2>
+          <div class="pdp-section">
+            <h2>Specifications</h2>
             <table class="spec-table"><tbody>${specs.map(s => `<tr><th scope="row">${escapeHtml(s.label)}</th><td>${escapeHtml(s.value)}</td></tr>`).join("")}</tbody></table>
           </div>` : ""}
 
-        <div>
-          <h2 style="font-size:var(--fs-lg);margin-bottom:.6rem">How to order</h2>
+        <div class="pdp-section">
+          <h2>How to order</h2>
           <ul class="info-list">
             <li>${icon.check}<span>Add this product to your order with the quantity you need.</span></li>
             <li>${icon.check}<span>Submit your order with your name and phone number to receive an order number.</span></li>

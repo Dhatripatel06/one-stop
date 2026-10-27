@@ -92,12 +92,12 @@ function summaryHtml(list) {
       ${est.unpriced ? `<div><dt>Price on request</dt><dd>${est.unpriced} item${est.unpriced === 1 ? "" : "s"}</dd></div>` : ""}
       ${est.allPriced ? `<div class="grand"><dt>Estimated total</dt><dd>${money(est.subtotal)}</dd></div>` : ""}
     </dl>
-    <p class="notice" style="margin-top:1rem">${est.allPriced
+    <p class="notice stack">${est.allPriced
       ? `Final prices${business.taxMode === "gst" && !business.pricesIncludeTax ? ", GST" : ""} and delivery are confirmed with your invoice.`
       : "We will confirm prices and availability with you on WhatsApp after you submit."}
       ${min ? ` Minimum order value: ${money(min)}.` : ""}</p>
-    ${belowMin ? `<p class="notice warn" style="margin-top:.75rem">Add ${money(min - est.subtotal)} more to reach the minimum order value.</p>` : ""}
-    <a class="btn btn-ghost btn-block" style="margin-top:1rem" href="${waUrl(business.whatsapp, enquiryMessage(list))}" target="_blank" rel="noopener">${icon.whatsapp}Just send an enquiry on WhatsApp</a>`;
+    ${belowMin ? `<p class="notice warn stack-sm">Add ${money(min - est.subtotal)} more to reach the minimum order value.</p>` : ""}
+    <a class="btn btn-ghost btn-block stack" href="${waUrl(business.whatsapp, enquiryMessage(list))}" target="_blank" rel="noopener">${icon.whatsapp}Just send an enquiry on WhatsApp</a>`;
 }
 
 function formHtml() {
@@ -112,7 +112,7 @@ function formHtml() {
         <div class="field"><label for="f-phone">Mobile / WhatsApp number</label><input class="input" id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="16" placeholder="10-digit mobile number" value="${v("phone")}"><p class="field-error" data-error="phone"></p></div>
         <div class="field"><label for="f-business">Business name <span class="opt">(optional)</span></label><input class="input" id="f-business" name="business" autocomplete="organization" maxlength="120" value="${v("business")}"><p class="field-error" data-error="business"></p></div>
         <div class="field"><label for="f-email">Email <span class="opt">(optional)</span></label><input class="input" id="f-email" name="email" type="email" autocomplete="email" maxlength="120" value="${v("email")}"><p class="field-error" data-error="email"></p></div>
-        <div class="field"><label for="f-gstin">GSTIN <span class="opt">(optional)</span></label><input class="input" id="f-gstin" name="gstin" maxlength="15" style="text-transform:uppercase" value="${v("gstin")}"><p class="field-error" data-error="gstin"></p></div>
+        <div class="field"><label for="f-gstin">GSTIN <span class="opt">(optional)</span></label><input id="f-gstin" name="gstin" maxlength="15" class="input upper" value="${v("gstin")}"><p class="field-error" data-error="gstin"></p></div>
         <div class="field"><label for="f-state">State <span class="opt">(optional)</span></label>
           <select id="f-state" name="stateCode"><option value="">Select state</option>${INDIAN_STATES.map(([code, name]) => `<option value="${code}" ${d.stateCode === code ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}</select>
           <p class="field-error" data-error="stateCode"></p></div>
@@ -122,8 +122,10 @@ function formHtml() {
         <div class="field full"><label for="f-notes">Order notes <span class="opt">(optional)</span></label><textarea class="textarea" id="f-notes" name="notes" maxlength="1000" placeholder="Colours, delivery timing or anything else we should know">${v("notes")}</textarea></div>
         <div class="sr-only" aria-hidden="true"><label for="f-website">Website</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
       </div>
-      <button class="btn btn-primary btn-lg btn-block" type="submit" id="submit-btn" style="margin-top:1.25rem">Submit order</button>
-      <p class="field-hint" style="margin-top:.75rem;text-align:center">Submitting saves your order and gives you an order number. Nothing is charged online.</p>
+      <div class="form-foot">
+        <button class="btn btn-primary btn-lg btn-block" type="submit" id="submit-btn">Submit order</button>
+        <p class="field-hint">Submitting saves your order and gives you an order number. Nothing is charged online.</p>
+      </div>
     </form>`;
 }
 
@@ -132,7 +134,7 @@ function renderCart() {
   if (!list.length) {
     root().innerHTML = `
       <div class="page-title"><h1>Your order</h1></div>
-      <div class="empty-state panel">
+      <div class="empty-state">
         <h3>Your order list is empty</h3>
         <p>Browse the catalogue and add the products you need.</p>
         <a class="btn btn-primary" href="index.html#catalogue">Browse catalogue</a>
@@ -156,7 +158,7 @@ function renderCart() {
         <section class="panel" aria-labelledby="items-title">
           <h2 id="items-title">Products <span class="field-hint" id="cart-count">${list.length} product${list.length === 1 ? "" : "s"}</span></h2>
           <div id="cart-lines">${list.map(lineHtml).join("")}</div>
-          <a class="link-arrow" href="index.html#catalogue" style="margin-top:1rem">+ Add more products</a>
+          <p class="panel-foot-link"><a class="link-arrow" href="index.html#catalogue">+ Add more products</a></p>
         </section>
         ${formHtml()}
       </div>
@@ -260,26 +262,42 @@ function renderSuccess(order) {
   const message = `Hi ${business.businessName},\n\nI have placed order ${order.orderNo} on your website.\n\n${order.items.map((item, i) => `${i + 1}. ${item.name} (${item.sku}) × ${item.qty}`).join("\n")}\n\nName: ${order.customer.name}\n\nPlease confirm prices and availability.`;
   const total = order.totals?.grandTotal;
   root().innerHTML = `
-    <div class="success-hero">
-      <div class="tick">${icon.check}</div>
-      <h1>Thank you — your order is saved</h1>
-      <p class="hero-lead" style="margin:0 auto">Your order number is</p>
-      <div class="order-no">${escapeHtml(order.orderNo)}</div>
-      <p style="color:var(--muted);max-width:36rem;margin:0 auto 1.5rem">Status: <strong>Pending confirmation</strong>. We will confirm prices, availability and delivery with you. To speed things up, send your order to us on WhatsApp.</p>
-      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-        <a class="btn btn-wa btn-lg" href="${waUrl(business.whatsapp, message)}" target="_blank" rel="noopener">${icon.whatsapp}Send order on WhatsApp</a>
-        <a class="btn btn-outline btn-lg" href="index.html#catalogue">Continue browsing</a>
-      </div>
-    </div>
-    <section class="panel" style="max-width:720px;margin:0 auto" aria-label="Order details">
-      <h2>Order ${escapeHtml(order.orderNo)}</h2>
-      ${order.items.map(item => `
-        <div class="line-item" style="grid-template-columns:minmax(0,1fr) auto">
-          <div><h3>${escapeHtml(displayName(item.name))}</h3><p class="meta">${escapeHtml(item.sku)} · Qty ${item.qty}${item.unitPrice !== null ? ` · ${money(item.unitPrice)} each` : " · Price to be confirmed"}</p></div>
-          <span class="line-total">${item.total !== null ? money(item.total) : "—"}</span>
-        </div>`).join("")}
-      ${total !== null && total !== undefined ? `<dl class="totals" style="margin-top:1rem"><div class="grand"><dt>Order total</dt><dd>${money(total)}</dd></div></dl>` : `<p class="notice" style="margin-top:1rem">Prices will be confirmed with you before your invoice is issued.</p>`}
-    </section>`;
+    <div class="success-wrap">
+      <section class="success-hero" aria-labelledby="success-title">
+        <div class="tick">${icon.check}</div>
+        <h1 id="success-title">Thank you — your order is saved</h1>
+        <div class="order-ref">
+          <span class="order-ref-label">Your order number is</span>
+          <span class="order-no-row"><span class="order-no">${escapeHtml(order.orderNo)}</span><button class="copy-btn" type="button" id="copy-order" aria-label="Copy order number">${icon.copy}<span>Copy</span></button></span>
+        </div>
+        <div class="success-status">
+          <span class="status-chip">Status: Pending confirmation</span>
+          <p>We will confirm prices, availability and delivery with you. To speed things up, send your order to us on WhatsApp.</p>
+        </div>
+        <div class="success-actions">
+          <a class="btn btn-wa btn-lg" href="${waUrl(business.whatsapp, message)}" target="_blank" rel="noopener">${icon.whatsapp}Send order on WhatsApp</a>
+          <a class="btn btn-outline btn-lg" href="index.html#catalogue">Continue browsing</a>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="summary-title">
+        <h2 id="summary-title">Order ${escapeHtml(order.orderNo)} <span class="field-hint">${order.items.length} product${order.items.length === 1 ? "" : "s"}</span></h2>
+        ${order.items.map(item => `
+          <div class="line-item line-item--receipt">
+            <div><h3>${escapeHtml(displayName(item.name))}</h3><p class="meta">${escapeHtml(item.sku)} · Qty ${item.qty}${item.unitPrice !== null ? ` · ${money(item.unitPrice)} each` : " · Price to be confirmed"}</p></div>
+            <span class="line-total">${item.total !== null ? money(item.total) : "—"}</span>
+          </div>`).join("")}
+        ${total !== null && total !== undefined ? `<dl class="totals stack"><div class="grand"><dt>Order total</dt><dd>${money(total)}</dd></div></dl>` : `<p class="notice stack">Prices will be confirmed with you before your invoice is issued.</p>`}
+      </section>
+    </div>`;
+
+  $("#copy-order").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(order.orderNo);
+      toast("Order number copied", "success");
+    } catch {
+      toast("Copy is not available here — the order number is shown above.", "error");
+    }
+  });
 }
 
 /* ---------------- start ---------------- */
@@ -317,7 +335,7 @@ async function init() {
     window.addEventListener("cart:change", renderCart);
   } catch (error) {
     root().setAttribute("aria-busy", "false");
-    root().innerHTML = `<div class="empty-state panel" style="margin-top:2rem"><h3>Your order could not be loaded</h3><p>${escapeHtml(error.message)}</p><button class="btn btn-primary" type="button" onclick="location.reload()">Try again</button></div>`;
+    root().innerHTML = `<div class="empty-state stack-lg"><h3>Your order could not be loaded</h3><p>${escapeHtml(error.message)}</p><button class="btn btn-primary" type="button" onclick="location.reload()">Try again</button></div>`;
   }
 }
 

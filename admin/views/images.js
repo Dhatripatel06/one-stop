@@ -32,17 +32,17 @@ export async function render(el, ctx) {
       ${ctx.config?.images?.configured === false ? '<p class="notice error">Cloudinary is not configured on the server. Uploads and deletions are unavailable.</p>' : ""}
       ${legacy.length ? `<p class="notice warn">${legacy.length} product(s) still use images from the project folder. Run the image migration (see README) to move them to Cloudinary.</p>` : ""}
       <div class="toolbar">
-        <select class="select" id="status" style="width:auto" aria-label="Status">
+        <select class="select" id="status" aria-label="Status">
           <option value="">All images</option><option value="in_use">In use</option><option value="unused">Unused</option><option value="deleted">Deleted</option>
         </select>
         <span class="muted">${assets.length} image${assets.length === 1 ? "" : "s"}</span>
       </div>
       <section class="card card-pad">
-        ${assets.length ? `<div class="images-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))">
+        ${assets.length ? `<div class="images-grid images-grid-lg">
           ${assets.map(a => `
-            <div style="display:grid;gap:6px">
-              <div class="img-tile">${a.status === "deleted" ? '<div class="empty small" style="padding:30px 6px">Deleted from Cloudinary</div>' : `<img src="${esc(thumb(a.url))}" alt="" loading="lazy">`}</div>
-              <div class="small" style="word-break:break-all"><strong>${esc(a.publicId.split("/").pop())}</strong></div>
+            <div class="asset">
+              <div class="img-tile">${a.status === "deleted" ? '<div class="empty small">Deleted from Cloudinary</div>' : `<img src="${esc(thumb(a.url))}" alt="" loading="lazy">`}</div>
+              <div class="small asset-name"><strong>${esc(a.publicId.split("/").pop())}</strong></div>
               <div class="small muted">${esc([a.width && a.height ? `${a.width}×${a.height}` : "", kb(a.bytes), date(a.createdAt)].filter(Boolean).join(" · "))}</div>
               <div><span class="badge ${STATUS[a.status]?.[0] || ""}">${STATUS[a.status]?.[1] || esc(a.status)}</span>
                 ${a.productIds.map(id => `<a class="small" href="#/products/${esc(id)}">${esc(skuOf.get(id) || id)}</a>`).join(" ")}</div>

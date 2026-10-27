@@ -122,23 +122,33 @@ function renderShell() {
           ${NAV.map(([key, label, icon]) => `<a href="#/${key}" data-nav="${key}">${icon}<span>${label}</span>${key === "orders" ? '<span class="pill" id="pending-pill" hidden></span>' : ""}</a>`).join("")}
         </nav>
         <div class="side-foot">
-          <span class="who">${esc(me.email)}<br><span class="muted" style="color:rgba(255,255,255,.6)">${me.role === "owner" ? "Owner" : "Staff"}</span></span>
-          <span class="muted" style="color:rgba(255,255,255,.6)">${emulator ? "Emulator data" : `Firebase: ${esc(appConfig?.firebase?.projectId || "")}`}</span>
+          <div class="side-user"><span class="side-avatar" aria-hidden="true">${esc((me.email || "?").charAt(0))}</span><span class="who">${esc(me.email)}<br><span class="role">${me.role === "owner" ? "Owner" : "Staff"}</span></span></div>
+          <span class="env">${emulator ? "Emulator data" : `Firebase: ${esc(appConfig?.firebase?.projectId || "")}`}</span>
           <a href="index.html" target="_blank" rel="noopener">View public catalogue ↗</a>
           <button type="button" id="logout-btn">Sign out</button>
         </div>
       </aside>
+      <div class="side-scrim" id="side-scrim" aria-hidden="true"></div>
       <div class="main"><main class="content" id="view" tabindex="-1"></main></div>
     </div>`;
 
   const sidebar = document.getElementById("sidebar");
+  const scrim = document.getElementById("side-scrim");
   const menu = document.getElementById("menu-btn");
-  menu.addEventListener("click", () => {
-    const open = sidebar.classList.toggle("is-open");
+  const setMenu = open => {
+    sidebar.classList.toggle("is-open", open);
+    scrim.classList.toggle("is-open", open);
     menu.setAttribute("aria-expanded", String(open));
+    menu.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    if (open) (sidebar.querySelector("[aria-current]") || sidebar.querySelector(".side-nav a"))?.focus();
+  };
+  menu.addEventListener("click", () => setMenu(!sidebar.classList.contains("is-open")));
+  scrim.addEventListener("click", () => setMenu(false));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && sidebar.classList.contains("is-open")) { setMenu(false); menu.focus(); }
   });
   sidebar.addEventListener("click", event => {
-    if (event.target.closest("a")) { sidebar.classList.remove("is-open"); menu.setAttribute("aria-expanded", "false"); }
+    if (event.target.closest("a")) setMenu(false);
   });
   document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
 }

@@ -34,6 +34,7 @@ export const icon = {
   phone: path('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/>'),
   instagram: path('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>'),
   info: path('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  copy: path('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>'),
   whatsapp: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.4.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>`
 };
 
@@ -136,7 +137,7 @@ export function productCardHtml(product, business = DEFAULT_BUSINESS) {
         ${product.availability !== "in_stock" ? badgeHtml(product.availability) : ""}
       </a>
       <div class="card-body">
-        <div class="card-meta"><span class="sku">${escapeHtml(product.sku)}</span> · ${escapeHtml(product.categoryName)}</div>
+        <div class="card-meta"><span class="sku">${escapeHtml(product.sku)}</span><span class="cat">${escapeHtml(product.categoryName)}</span></div>
         <h3 class="card-title"><a href="${productUrl(product)}">${escapeHtml(name)}</a></h3>
         <div class="card-price">${priceHtml(product)}</div>
         ${minNote ? `<div class="card-note">${minNote}</div>` : ""}
@@ -226,8 +227,8 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
         <div class="container">
           <span class="topbar-msg">${escapeHtml(business.tagline)} · Wholesale catalogue</span>
           <div class="topbar-links">
-            <a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">WhatsApp ${escapeHtml(phoneDisplay)}</a>
-            <a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">@${escapeHtml(business.instagram)}</a>
+            <a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">${icon.whatsapp}<span><span class="sr-only">WhatsApp </span>${escapeHtml(phoneDisplay)}</span></a>
+            <a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">${icon.instagram}<span><span class="sr-only">Instagram </span>@${escapeHtml(business.instagram)}</span></a>
           </div>
         </div>
       </div>
@@ -260,13 +261,26 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
     const headerEl = document.getElementById("site-header");
     const toggle = headerEl.querySelector(".nav-toggle");
     const nav = headerEl.querySelector("#main-nav");
-    toggle.addEventListener("click", () => {
-      const open = nav.classList.toggle("is-open");
+    const setMenu = open => {
+      nav.classList.toggle("is-open", open);
       toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
       toggle.innerHTML = open ? icon.close : icon.menu;
+    };
+    toggle.addEventListener("click", () => {
+      const open = !nav.classList.contains("is-open");
+      setMenu(open);
+      if (open) nav.querySelector("a")?.focus();
     });
     nav.addEventListener("click", event => {
-      if (event.target.closest("a")) { nav.classList.remove("is-open"); toggle.setAttribute("aria-expanded", "false"); toggle.innerHTML = icon.menu; }
+      if (event.target.closest("a")) setMenu(false);
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && nav.classList.contains("is-open")) { setMenu(false); toggle.focus(); }
+    });
+    document.addEventListener("click", event => {
+      // composedPath(): the toggle swaps its icon, so event.target may already be detached.
+      if (nav.classList.contains("is-open") && !event.composedPath().includes(headerEl)) setMenu(false);
     });
     const onScroll = () => headerEl.classList.toggle("is-scrolled", window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -276,15 +290,31 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
   if (footer) {
     footer.outerHTML = `
       <footer class="site-footer" id="site-footer">
-        <div class="container footer-grid">
-          <a class="brand" href="index.html"><img src="538820.jpg" alt="" width="52" height="52"><span class="brand-name"><strong>${escapeHtml(business.businessName)}</strong><span>${escapeHtml(business.tagline)}</span></span></a>
-          <div class="footer-links">
-            <a href="index.html#catalogue">Catalogue</a>
-            <a href="order.html">Your order</a>
-            <a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">WhatsApp: ${escapeHtml(business.phone)}</a>
-            <a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">Instagram: @${escapeHtml(business.instagram)}</a>
+        <div class="container">
+          <div class="footer-grid">
+            <div class="footer-about">
+              <a class="brand" href="index.html"><img src="538820.jpg" alt="" width="52" height="52"><span class="brand-name"><strong>ONE STOP SOLUTION</strong><span>${escapeHtml(business.tagline)}</span></span></a>
+              <p>Wholesale catalogue. Build your order online and confirm it with us on WhatsApp.</p>
+            </div>
+            <nav class="footer-col" aria-label="Footer">
+              <h2>Browse</h2>
+              <ul>
+                <li><a href="index.html#catalogue">Catalogue</a></li>
+                <li><a href="index.html#categories">Categories</a></li>
+                <li><a href="index.html#how-to-order">How to order</a></li>
+                <li><a href="order.html">Your order</a></li>
+              </ul>
+            </nav>
+            <div class="footer-col">
+              <h2>Contact</h2>
+              <ul>
+                <li><a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">WhatsApp: ${escapeHtml(phoneDisplay)}</a></li>
+                <li><a href="tel:+${escapeHtml(business.whatsapp)}">Call: ${escapeHtml(phoneDisplay)}</a></li>
+                <li><a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">Instagram: @${escapeHtml(business.instagram)}</a></li>
+              </ul>
+            </div>
           </div>
-          <span>© ${new Date().getFullYear()} ${escapeHtml(business.businessName)}</span>
+          <div class="footer-base"><span>© ${new Date().getFullYear()} ${escapeHtml(business.businessName)}</span><span>${escapeHtml(business.tagline)}</span></div>
         </div>
       </footer>`;
   }

@@ -114,7 +114,7 @@ function renderGrid() {
       <div class="empty-state">
         <h3>No products match your search</h3>
         <p>${state.q ? `Nothing found for “${escapeHtml(state.q)}”. ` : ""}Try a different name or product code, or ask us on WhatsApp.</p>
-        <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
+        <div class="empty-actions">
           <button class="btn btn-outline" type="button" data-reset>Clear filters</button>
           <a class="btn btn-wa" href="${waUrl(state.business.whatsapp, `Hi ${state.business.businessName},\n\nI'm looking for: ${state.q}`)}" target="_blank" rel="noopener">${icon.whatsapp}Ask on WhatsApp</a>
         </div>
@@ -137,7 +137,7 @@ function renderHero() {
   $("#hero-mosaic").innerHTML = picks.slice(0, 4).map(p => `
     <a class="hero-tile" href="product.html?sku=${encodeURIComponent(p.sku)}" tabindex="-1">
       <img src="${escapeHtml(imageOf(p, 600))}" alt="" width="400" height="400" fetchpriority="high">
-      <figcaption>${escapeHtml(displayName(p.name))}</figcaption>
+      <span class="caption">${escapeHtml(displayName(p.name))}</span>
     </a>`).join("");
 
   $("#hero-lead").textContent = `Browse ${state.products.length} products across ${state.categories.length} categories — build your order and confirm it with us on WhatsApp.`;
@@ -294,7 +294,7 @@ async function init() {
       <div class="empty-state">
         <h3>The catalogue could not be loaded</h3>
         <p>${escapeHtml(error.message)}</p>
-        <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
+        <div class="empty-actions">
           <button class="btn btn-primary" type="button" onclick="location.reload()">Try again</button>
           <a class="btn btn-wa" href="${waUrl(DEFAULT_BUSINESS.whatsapp, `Hi ${DEFAULT_BUSINESS.businessName},\n\n`)}" target="_blank" rel="noopener">${icon.whatsapp}Order on WhatsApp</a>
         </div>
