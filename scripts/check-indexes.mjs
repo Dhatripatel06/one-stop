@@ -26,6 +26,7 @@ const QUERIES = [
   ["orders.js / customers.js orders by customer", () => orders().where("customerId", "==", "_").orderBy("createdAt", "desc").limit(1).get()],
   ["customers.js invoices by customer", () => invoices().where("customerId", "==", "_").orderBy("issuedAt", "desc").limit(1).get()],
   ["invoices.js listInvoices by payment status", () => invoices().where("status", "==", "issued").where("paymentStatus", "==", "unpaid").orderBy("issuedAt", "desc").limit(1).get()],
+  ["invoices.js listOfflineInvoices", () => invoices().where("source", "==", "offline").orderBy("issuedAt", "desc").limit(1).get()],
   ["inventory.js movements by product", () => db().collection("inventoryMovements").where("productId", "==", "_").orderBy("at", "desc").limit(1).get()],
   ["dashboard.js sales total", () => invoices().where("status", "==", "issued").where("issuedAt", ">=", since).where("issuedAt", "<", Timestamp.now())
     .aggregate({ total: AggregateField.sum("totals.grandTotal"), count: AggregateField.count() }).get()],

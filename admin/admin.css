@@ -381,6 +381,25 @@ dialog.modal::backdrop { background: rgba(32,33,31,.5); animation: fade-in .2s; 
 .inv-stamp.cancelled { background: var(--danger-50); color: var(--danger); }
 .inv-stamp.preview { background: var(--orange-50); color: var(--orange-700); }
 @media (max-width: 640px) { .inv-parties, .inv-bottom { grid-template-columns: 1fr; } .inv-title { text-align: left; } }
+/* Standard terms and closing line — same order and emphasis as the PDF. */
+.inv-terms { margin-top: 28px; max-width: 46ch; break-inside: avoid; }
+.inv-terms h3 { font-size: 14px; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); margin-bottom: 6px; }
+.inv-terms .inv-terms-head { margin: 0 0 6px; font-weight: 800; color: #8a6500; letter-spacing: .02em; }
+.inv-terms p { margin: 2px 0; font-size: 12.5px; }
+.inv-thanks { margin: 32px 0 0; text-align: center; font-weight: 700; color: var(--ink); break-inside: avoid; }
+.inv-foot { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+
+/* ---------------- offline invoices ---------------- */
+.offline-created { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; }
+.offline-created-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.offline-more { margin-top: 14px; }
+.offline-more summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--ink-2); }
+.offline-side { position: sticky; top: 16px; }
+@media (max-width: 1100px) { .offline-side { position: static; } }
+#summary { transition: opacity .15s; }
+#summary.is-stale { opacity: .55; }
+#phone-state.ok { color: var(--success); font-weight: 600; }
+#phone-state.bad { color: var(--danger); font-weight: 600; }
 
 @media print {
   body { background: #fff; }
@@ -390,6 +409,6 @@ dialog.modal::backdrop { background: rgba(32,33,31,.5); animation: fade-in .2s; 
   .detail-grid { display: block; }
   .invoice-sheet { box-shadow: none; padding: 0; border-radius: 0; border: 0; }
   .inv-top { margin: 0 0 16px; border-radius: 0; }
-  .inv-table th, .inv-bottom .grand { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .inv-table th, .inv-bottom .grand, .inv-terms .inv-terms-head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { size: A4; margin: 14mm; }
 }

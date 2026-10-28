@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
 import { amountInWords, formatINR, stateName } from "../shared/pricing.js";
-import { PAYMENT_METHODS } from "../shared/constants.js";
+import { INVOICE_THANK_YOU, PAYMENT_METHODS } from "../shared/constants.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
@@ -20,6 +20,7 @@ const FONT = {
 
 const NAVY = "#12294d";
 const GOLD = "#c89400";
+const GOLD_TEXT = "#a67a00"; // GOLD darkened so small bold text stays legible in print
 const INK = "#1d2433";
 const MUTED = "#5f6b7d";
 const LINE = "#dfe3ea";
@@ -52,7 +53,7 @@ export function renderInvoicePdf(invoice) {
       info: {
         Title: `${invoice.documentTitle} ${invoice.invoiceNo}`,
         Author: invoice.seller.businessName,
-        Subject: `Order ${invoice.orderNo}`
+        Subject: invoice.orderNo ? `Order ${invoice.orderNo}` : `Invoice ${invoice.invoiceNo}`
       }
     });
     const chunks = [];
@@ -108,11 +109,12 @@ function draw(doc, invoice) {
 
   const rightX = left + CONTENT - 200;
   text(doc, invoice.documentTitle.toUpperCase(), rightX, y, { font: "bold", size: 18, color: NAVY, width: 200, align: "right", characterSpacing: 1 });
+  // Offline invoices have no order, so the row is left out rather than blank.
   const meta = [
     ["Invoice No.", invoice.invoiceNo],
     ["Invoice Date", date(invoice.issuedAt)],
-    ["Order No.", invoice.orderNo]
-  ];
+    invoice.orderNo && ["Order No.", invoice.orderNo]
+  ].filter(Boolean);
   let my = y + 30;
   for (const [label, value] of meta) {
     text(doc, label, rightX, my, { size: 8, color: MUTED, width: 90 });
@@ -205,7 +207,8 @@ function draw(doc, invoice) {
     };
     const itemCol = columns.find(c => c.key === "item");
     doc.font("semibold").fontSize(8.5);
-    const nameHeight = doc.heightOfString(line.name, { width: itemCol.width - 10 });
+    // lineGap matches text(), so the SKU line never collides with a wrapped name.
+    const nameHeight = doc.heightOfString(line.name, { width: itemCol.width - 10, lineGap: 1.5 });
     const rowHeight = Math.max(nameHeight + 18, 28);
 
     if (y + rowHeight > PAGE.height - 120) {
@@ -308,12 +311,13 @@ function draw(doc, invoice) {
   }
   if (invoice.paymentDetails) blocks.push(["Payment details", invoice.paymentDetails]);
   if (invoice.notes) blocks.push(["Notes", invoice.notes]);
-  if (invoice.terms) blocks.push(["Terms & conditions", invoice.terms]);
+  // Owner-written terms from Settings sit alongside the standard terms below.
+  if (invoice.terms) blocks.push([invoice.standardTerms ? "Additional terms" : "Terms & conditions", invoice.terms]);
   if (invoice.replaces) blocks.push(["Replaces", `This invoice replaces cancelled invoice ${invoice.replaces.invoiceNo}.`]);
 
   for (const [title, body] of blocks) {
     doc.font("regular").fontSize(8.5);
-    const h = doc.heightOfString(body, { width: CONTENT }) + 20;
+    const h = doc.heightOfString(body, { width: CONTENT, lineGap: 1.5 }) + 20;
     if (y + h > PAGE.height - 60) {
       doc.addPage();
       y = PAGE.margin;
@@ -321,6 +325,31 @@ function draw(doc, invoice) {
     text(doc, title.toUpperCase(), left, y, { font: "semibold", size: 7.5, color: MUTED, characterSpacing: 0.6 });
     y = text(doc, body, left, doc.y + 2, { size: 8.5, width: CONTENT }) + 10;
   }
+
+  /* ---------------- standard terms + closing line ----------------
+     Kept together on the final page: if they do not fit below the
+     content, both move to a new page instead of splitting. */
+  const terms = invoice.standardTerms;
+  const termsWidth = Math.min(CONTENT, 330);
+  const closingTop = PAGE.height - 70; // just above the footer rule
+  let termsHeight = 0;
+  if (terms) {
+    doc.font("bold").fontSize(10);
+    termsHeight = 22 + doc.heightOfString(terms.headline, { width: CONTENT, lineGap: 1.5 }) + 8;
+    doc.font("regular").fontSize(9);
+    for (const line of terms.lines) termsHeight += doc.heightOfString(line, { width: termsWidth, lineGap: 1.5 }) + 3;
+  }
+  if (y + 12 + termsHeight + 24 > closingTop) {
+    doc.addPage();
+    y = PAGE.margin;
+  }
+  if (terms) {
+    y += 12;
+    text(doc, terms.title.toUpperCase(), left, y, { font: "bold", size: 10.5, color: NAVY, characterSpacing: 0.4, width: CONTENT });
+    y = text(doc, terms.headline, left, doc.y + 6, { font: "bold", size: 10, color: GOLD_TEXT, width: CONTENT }) + 6;
+    for (const line of terms.lines) y = text(doc, line, left, y, { size: 9, width: termsWidth }) + 3;
+  }
+  text(doc, INVOICE_THANK_YOU, left, Math.max(y + 16, closingTop), { font: "semibold", size: 10, color: NAVY, width: CONTENT, align: "center" });
 
   /* ---------------- footer on every page ---------------- */
   const range = doc.bufferedPageRange();

@@ -12,7 +12,7 @@ import { GSTIN_PATTERN, normalizePhone } from "../shared/constants.js";
 
 export const DEFAULT_SETTINGS = {
   businessName: "ONE STOP SOLUTION (OSS)",
-  tagline: "Every Problem One Solution",
+  tagline: "Every Problem, One Solution",
   phone: "9499806747",
   whatsapp: "919499806747",
   instagram: "onestopsolution4325",

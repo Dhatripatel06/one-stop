@@ -158,18 +158,6 @@ function renderHero() {
     : "";
 }
 
-function renderCategories() {
-  $("#categories-sub").textContent = `${state.categories.length} categories · ${state.products.length} products`;
-  $("#category-rail").innerHTML = state.categories.map(c => {
-    const product = state.products.find(p => p.categoryId === c.id && p.images.length);
-    return `
-      <button type="button" class="category-tile" data-category-tile="${escapeHtml(c.id)}">
-        <span class="thumb">${product ? `<img src="${escapeHtml(imageOf(product, 600))}" alt="" loading="lazy" width="300" height="300">` : ""}</span>
-        <span class="label"><strong>${escapeHtml(c.name)}</strong><span>${c.productCount} product${c.productCount === 1 ? "" : "s"}</span></span>
-      </button>`;
-  }).join("");
-}
-
 function renderSpotlights() {
   const featured = state.products.filter(p => p.featured).slice(0, 8);
   $("#featured").hidden = featured.length === 0;
@@ -214,7 +202,6 @@ function refreshActions(sku) {
 
 function renderAll() {
   renderHero();
-  renderCategories();
   renderSpotlights();
   renderChips();
   renderGrid();
@@ -280,7 +267,6 @@ function bindEvents() {
     $("#catalogue").scrollIntoView();
     $(`#category-quick [data-category="${CSS.escape(state.category)}"]`)?.scrollIntoView({ inline: "center", block: "nearest" });
   };
-  $("#category-rail").addEventListener("click", onCategoryTile);
   $("#hero-quick").addEventListener("click", onCategoryTile);
 
   const availability = $("#availability-filter");

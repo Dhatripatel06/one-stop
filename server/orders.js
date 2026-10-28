@@ -34,7 +34,7 @@ function iso(value) {
   return value;
 }
 
-function parseItems(raw, { admin = false } = {}) {
+export function parseItems(raw, { admin = false } = {}) {
   if (!Array.isArray(raw) || raw.length === 0) throw badRequest("Add at least one product to the order.");
   if (raw.length > MAX_ORDER_LINES) throw badRequest(`An order can contain up to ${MAX_ORDER_LINES} products.`);
 
@@ -68,7 +68,7 @@ function parseItems(raw, { admin = false } = {}) {
 }
 
 // Read phase: resolve SKUs to products inside a transaction.
-async function readProductsBySku(tx, lines) {
+export async function readProductsBySku(tx, lines) {
   const indexSnaps = await Promise.all(lines.map(line => tx.get(db().collection("skuIndex").doc(line.sku))));
   const missing = lines.filter((line, i) => !indexSnaps[i].exists).map(line => line.sku);
   if (missing.length) throw badRequest(`These products are no longer available: ${missing.join(", ")}.`, { missing });
@@ -80,7 +80,7 @@ async function readProductsBySku(tx, lines) {
   });
 }
 
-function validateOrderable(entries) {
+export function validateOrderable(entries) {
   const problems = [];
   for (const { data, line } of entries) {
     if (data.status !== "active") problems.push(`${data.sku} is not currently offered.`);
@@ -91,7 +91,7 @@ function validateOrderable(entries) {
   assertAvailable(entries.map(entry => ({ data: entry.data, qty: entry.line.qty })));
 }
 
-function buildItems(entries, { admin = false } = {}) {
+export function buildItems(entries, { admin = false } = {}) {
   return entries.map(({ ref, data, line }, index) => {
     const catalogue = effectiveUnitPrice(data);
     const adminPrice = admin && line.unitPrice !== undefined ? line.unitPrice : undefined;

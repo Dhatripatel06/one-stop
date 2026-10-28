@@ -22,7 +22,7 @@ function movementRows(items, { showProduct = true } = {}) {
           <td data-label="Change" class="right num">${m.qtyChange > 0 ? `+${m.qtyChange}` : m.qtyChange || "—"}</td>
           <td data-label="Stock" class="right num">${m.stockBefore} → ${m.stockAfter}</td>
           <td data-label="Reserved" class="right num">${m.reservedBefore} → ${m.reservedAfter}</td>
-          <td data-label="Reason">${esc(m.reason)}${m.orderId ? ` <a href="#/orders/${esc(m.orderId)}">${esc(m.orderNo)}</a>` : ""}</td>
+          <td data-label="Reason">${esc(m.reason)}${m.orderId ? ` <a href="#/orders/${esc(m.orderId)}">${esc(m.orderNo)}</a>` : ""}${m.invoiceId && !m.orderId ? ` <a href="#/offline-invoices/${esc(m.invoiceId)}">View invoice</a>` : ""}</td>
           <td data-label="By" class="small">${esc(m.actor?.email || m.actor?.uid || "")}</td>
         </tr>`).join("")}
       </tbody></table></div>`;

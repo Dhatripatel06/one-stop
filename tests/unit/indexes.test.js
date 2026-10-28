@@ -14,6 +14,8 @@ const REQUIRED = [
   ["invoices", ["customerId ASCENDING", "issuedAt DESCENDING"]],
   // invoices.js listInvoices by payment status
   ["invoices", ["status ASCENDING", "paymentStatus ASCENDING", "issuedAt DESCENDING"]],
+  // invoices.js listOfflineInvoices
+  ["invoices", ["source ASCENDING", "issuedAt DESCENDING"]],
   // inventory.js listMovements by product
   ["inventoryMovements", ["productId ASCENDING", "at DESCENDING"]],
   // dashboard.js sum() aggregations: the summed field must be in the index

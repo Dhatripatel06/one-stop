@@ -90,7 +90,7 @@ async function renderList(el, ctx) {
    LINE EDITOR (new orders and pending orders)
 ========================================================= */
 
-function lineEditor(container, products, initial, { onChange } = {}) {
+export function lineEditor(container, products, initial, { onChange } = {}) {
   const lines = initial.map(l => ({ ...l }));
   const bySku = new Map(products.map(p => [p.sku, p]));
 
@@ -172,7 +172,7 @@ function lineEditor(container, products, initial, { onChange } = {}) {
   };
 }
 
-function stateOptions(value) {
+export function stateOptions(value) {
   return [["", "Not set"], ...INDIAN_STATES.map(([c, n]) => [c, `${n} (${c})`])];
 }
 

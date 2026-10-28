@@ -6,6 +6,9 @@
      - Order dispatched:     stockQty -= qty, reservedQty -= qty ("deduct")
      - Order cancelled:      reservedQty -= qty   ("release"), only before dispatch
    Stock is deducted exactly once, at dispatch.
+   Offline (walk-in) invoices hand the goods over immediately, so they
+   deduct at issue ("sale") and restore if that invoice is cancelled
+   ("sale_reversal"). There is no order and no reservation for them.
    available = stockQty - reservedQty, and can never go negative.
 
    Products imported from the old catalogue have no verified stock count,
@@ -33,6 +36,8 @@ function movementDoc(product, productId, change) {
     reason: change.reason || "",
     orderId: change.orderId || null,
     orderNo: change.orderNo || null,
+    invoiceId: change.invoiceId || null,
+    invoiceNo: change.invoiceNo || null,
     actor: change.actor || { uid: "system", email: "" },
     at: FieldValue.serverTimestamp()
   };
@@ -164,6 +169,49 @@ export function deductInTx(tx, entries, order, actor) {
     }));
     data.stockQty = stockAfter;
     data.reservedQty = reservedAfter;
+  }
+}
+
+/* ---------------------------------------------------------
+   OFFLINE SALES (called inside the offline-invoice transactions)
+   `entries` = [{ ref, data, qty }]; untracked products are skipped.
+   Returns what was deducted so a cancellation can restore exactly that.
+--------------------------------------------------------- */
+
+export function sellInTx(tx, entries, invoice, actor) {
+  const deducted = [];
+  for (const { ref, data, qty } of entries) {
+    if (!data.trackStock) continue;
+    const stockBefore = data.stockQty || 0;
+    const reserved = data.reservedQty || 0;
+    const stockAfter = stockBefore - qty;
+    // Reserved units belong to confirmed orders; a counter sale cannot use them.
+    if (stockAfter < reserved) throw conflict(`Not enough stock for ${data.sku}: ${Math.max(0, stockBefore - reserved)} available.`);
+    tx.update(ref, { stockQty: stockAfter, updatedAt: FieldValue.serverTimestamp() });
+    tx.set(movements().doc(), movementDoc(data, ref.id, {
+      type: "sale", qtyChange: -qty, stockBefore, stockAfter,
+      reservedBefore: reserved, reservedAfter: reserved,
+      reason: `Offline invoice ${invoice.invoiceNo}`, invoiceId: invoice.id, invoiceNo: invoice.invoiceNo, actor
+    }));
+    data.stockQty = stockAfter;
+    deducted.push({ productId: ref.id, sku: data.sku, qty });
+  }
+  return deducted;
+}
+
+// `entries` = [{ ref, data, qty }] for the products listed in invoice.stockDeducted.
+export function restoreSaleInTx(tx, entries, invoice, actor, reason) {
+  for (const { ref, data, qty } of entries) {
+    const stockBefore = data.stockQty || 0;
+    const reserved = data.reservedQty || 0;
+    const stockAfter = stockBefore + qty;
+    tx.update(ref, { stockQty: stockAfter, updatedAt: FieldValue.serverTimestamp() });
+    tx.set(movements().doc(), movementDoc(data, ref.id, {
+      type: "sale_reversal", qtyChange: qty, stockBefore, stockAfter,
+      reservedBefore: reserved, reservedAfter: reserved,
+      reason, invoiceId: invoice.id, invoiceNo: invoice.invoiceNo, actor
+    }));
+    data.stockQty = stockAfter;
   }
 }
 

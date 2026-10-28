@@ -44,7 +44,9 @@ export const MOVEMENT_TYPES = {
   correction: "Manual correction",
   reserve: "Reserved for order",
   release: "Reservation released",
-  deduct: "Dispatched (deducted)"
+  deduct: "Dispatched (deducted)",
+  sale: "Offline sale (deducted)",
+  sale_reversal: "Offline sale cancelled (restored)"
 };
 
 export const PAYMENT_METHODS = {
@@ -56,7 +58,28 @@ export const PAYMENT_METHODS = {
   other: "Other"
 };
 
-export const SKU_PATTERN = /^[A-Z0-9][A-Z0-9_-]{1,31}$/;
+// Standard sale terms printed on every invoice (online and offline). They are
+// copied onto each invoice when it is issued, so later wording changes never
+// alter an invoice that was already given to a customer.
+export const INVOICE_TERMS = {
+  title: "Terms & Conditions",
+  headline: "NO RETURN | NO REFUND | NO EXCHANGE",
+  lines: [
+    "Goods once sold will not be taken back or exchanged.",
+    "Deposit amounts are non-refundable in case of order cancellation."
+  ]
+};
+
+export const INVOICE_THANK_YOU = "Thank you for doing business with us.";
+
+// Where an invoice came from. Invoices issued before this field existed have
+// no `source`; they were all issued from an order.
+export const INVOICE_SOURCES = {
+  order: "Order",
+  offline: "Offline / walk-in"
+};
+
+export const SKU_PATTERN =/^[A-Z0-9][A-Z0-9_-]{1,31}$/;
 
 export const MAX_ORDER_LINES = 60;
 export const MAX_LINE_QTY = 100000;

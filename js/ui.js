@@ -10,7 +10,7 @@ export const FALLBACK_IMAGE = "/images/placeholder.svg";
 
 export const DEFAULT_BUSINESS = {
   businessName: "ONE STOP SOLUTION (OSS)",
-  tagline: "Every Problem One Solution",
+  tagline: "Every Problem, One Solution",
   phone: "9499806747",
   whatsapp: "919499806747",
   instagram: "onestopsolution4325",
@@ -220,12 +220,14 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
   const header = document.getElementById("site-header");
   const footer = document.getElementById("site-footer");
   const phoneDisplay = String(business.phone).replace(/(\d{5})(\d{5})/, "$1 $2");
+  // On the home page the hero shows the logo, name and tagline at full size,
+  // so the header brand drops the tagline there to avoid repeating it.
+  const isHome = active === "catalogue";
 
   if (header) {
     header.outerHTML = `
       <div class="topbar">
         <div class="container">
-          <span class="topbar-msg">${escapeHtml(business.tagline)}</span>
           <div class="topbar-links">
             <a href="${waUrl(business.whatsapp, `Hi ${business.businessName},\n\n`)}" target="_blank" rel="noopener">${icon.whatsapp}<span><span class="sr-only">WhatsApp </span>${escapeHtml(phoneDisplay)}</span></a>
             <a href="https://www.instagram.com/${escapeHtml(business.instagram)}/" target="_blank" rel="noopener">${icon.instagram}<span><span class="sr-only">Instagram </span>@${escapeHtml(business.instagram)}</span></a>
@@ -236,11 +238,10 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
         <div class="container header-inner">
           <a class="brand" href="index.html" aria-label="${escapeHtml(business.businessName)} home">
             <img src="538820.jpg" alt="" width="44" height="44">
-            <span class="brand-name"><strong>One Stop Solution</strong><span>Wholesale catalogue</span></span>
+            <span class="brand-name"><strong>One Stop Solution</strong>${isHome ? "" : `<span>${escapeHtml(business.tagline)}</span>`}</span>
           </a>
           <nav class="main-nav" id="main-nav" aria-label="Main">
             <a href="index.html#catalogue" ${active === "catalogue" ? 'aria-current="page"' : ""}>Catalogue</a>
-            <a href="index.html#categories">Categories</a>
             <a href="index.html#how-to-order">How to order</a>
             <a href="index.html#contact">Contact</a>
           </nav>
@@ -304,7 +305,6 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
               <h2>Browse</h2>
               <ul>
                 <li><a href="index.html#catalogue">Catalogue</a></li>
-                <li><a href="index.html#categories">Categories</a></li>
                 <li><a href="index.html#how-to-order">How to order</a></li>
                 <li><a href="order.html">Your order</a></li>
               </ul>

@@ -187,6 +187,14 @@ add("POST", "/admin/orders/:id/status", ({ params, body, admin }) => orders.tran
 add("POST", "/admin/orders/:id/invoice-preview", ({ params, body }) => invoices.previewInvoice(params.id, body), A);
 add("POST", "/admin/orders/:id/invoice", ({ params, body, admin }) => invoices.issueInvoice(params.id, body, admin), A);
 
+// Offline (walk-in) invoices: issued without an order. Viewing, PDF, payments,
+// sharing and cancellation use the /admin/invoices/:id routes below.
+add("GET", "/admin/offline-invoices", ({ query }) => invoices.listOfflineInvoices({
+  q: query.get("q") || undefined, limit: query.get("limit"), before: query.get("before") || undefined
+}), A);
+add("POST", "/admin/offline-invoices/preview", ({ body }) => invoices.previewOfflineInvoice(body), A);
+add("POST", "/admin/offline-invoices", ({ body, admin }) => invoices.createOfflineInvoice(body, admin), A);
+
 add("GET", "/admin/invoices", ({ query }) => invoices.listInvoices({
   q: query.get("q") || undefined, paymentStatus: query.get("paymentStatus") || undefined,
   limit: query.get("limit"), before: query.get("before") || undefined

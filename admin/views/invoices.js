@@ -1,4 +1,5 @@
-/* Invoices — list, preview, PDF, payments, cancellation, WhatsApp sharing. */
+/* Invoices — list, preview, PDF, payments, cancellation, WhatsApp sharing.
+   The detail view also serves offline (walk-in) invoices, which have no order. */
 
 import { api } from "../api.js";
 import {
@@ -6,7 +7,7 @@ import {
   paymentBadge, phoneDisplay, selectField, setBusy, showFormErrors, toRupeesInput, toast, toastError
 } from "../ui.js";
 import { amountInWords, stateName } from "../../shared/pricing.js";
-import { PAYMENT_METHODS } from "../../shared/constants.js";
+import { INVOICE_THANK_YOU, PAYMENT_METHODS, isValidPhone, normalizePhone } from "../../shared/constants.js";
 
 export async function render(el, ctx) {
   const [id] = ctx.params;
@@ -42,7 +43,7 @@ export function invoiceHtml(inv) {
         </div>
         <div class="inv-title">
           <h1>${esc(inv.documentTitle)}</h1>
-          <dl><dt>Invoice No.</dt><dd>${esc(inv.invoiceNo)}</dd><dt>Invoice date</dt><dd>${date(inv.issuedAt)}</dd><dt>Order No.</dt><dd>${esc(inv.orderNo)}</dd></dl>
+          <dl><dt>Invoice No.</dt><dd>${esc(inv.invoiceNo)}</dd><dt>Invoice date</dt><dd>${date(inv.issuedAt)}</dd>${inv.orderNo ? `<dt>Order No.</dt><dd>${esc(inv.orderNo)}</dd>` : ""}</dl>
         </div>
       </div>
       <div class="inv-parties">
@@ -51,7 +52,7 @@ export function invoiceHtml(inv) {
           <p><strong>${esc(c.name)}</strong></p>
           ${c.business ? `<p>${esc(c.business)}</p>` : ""}
           ${c.billingAddress ? `<p style="white-space:pre-line">${esc(c.billingAddress)}</p>` : ""}
-          <p>Phone: ${esc(phoneDisplay(c.phone))}</p>
+          ${c.phone ? `<p>Phone: ${esc(phoneDisplay(c.phone))}</p>` : ""}
           ${c.email ? `<p>${esc(c.email)}</p>` : ""}
           ${c.gstin ? `<p>GSTIN: ${esc(c.gstin)}</p>` : ""}
         </div>
@@ -97,12 +98,22 @@ export function invoiceHtml(inv) {
       <div class="inv-notes">
         ${inv.paymentDetails ? `<div><h3>Payment details</h3>${esc(inv.paymentDetails)}</div>` : ""}
         ${inv.notes ? `<div><h3>Notes</h3>${esc(inv.notes)}</div>` : ""}
-        ${inv.terms ? `<div><h3>Terms & conditions</h3>${esc(inv.terms)}</div>` : ""}
+        ${inv.terms ? `<div><h3>${inv.standardTerms ? "Additional terms" : "Terms & conditions"}</h3>${esc(inv.terms)}</div>` : ""}
         ${inv.replaces ? `<div><h3>Replaces</h3>This invoice replaces cancelled invoice ${esc(inv.replaces.invoiceNo)}.</div>` : ""}
-        <p class="small muted" style="margin:0">This is a computer-generated ${esc(String(inv.documentTitle).toLowerCase())}.</p>
       </div>
+      ${inv.standardTerms ? `
+      <section class="inv-terms" aria-label="${esc(inv.standardTerms.title)}">
+        <h3>${esc(inv.standardTerms.title)}</h3>
+        <p class="inv-terms-head">${esc(inv.standardTerms.headline)}</p>
+        ${inv.standardTerms.lines.map(line => `<p>${esc(line)}</p>`).join("")}
+      </section>` : ""}
+      <p class="inv-thanks">${esc(INVOICE_THANK_YOU)}</p>
+      <p class="inv-foot small muted">This is a computer-generated ${esc(String(inv.documentTitle).toLowerCase())}.</p>
     </article>`;
 }
+
+// Offline invoices have no order. Invoices issued before `source` existed all came from orders.
+export const isOffline = inv => inv?.source === "offline";
 
 /* =========================================================
    LIST
@@ -135,13 +146,13 @@ async function renderList(el, ctx) {
             <tr class="clickable" data-id="${esc(i.id)}">
               <td class="cell-main"><a class="name" href="#/invoices/${esc(i.id)}">${esc(i.invoiceNo)}</a>${i.status === "cancelled" ? ' <span class="badge red">Cancelled</span>' : ""}</td>
               <td data-label="Customer">${esc(i.customer?.name)}</td>
-              <td data-label="Order">${esc(i.orderNo)}</td>
+              <td data-label="Order">${isOffline(i) ? '<span class="badge gold">Offline</span>' : esc(i.orderNo)}</td>
               <td data-label="Total" class="right num">${money(i.totals?.grandTotal)}</td>
               <td data-label="Balance" class="right num">${i.status === "cancelled" ? "—" : money(i.balanceDue)}</td>
               <td data-label="Payment">${i.status === "cancelled" ? "—" : paymentBadge(i.paymentStatus)}</td>
               <td data-label="Date" class="nowrap">${date(i.issuedAt)}</td>
             </tr>`).join("")}
-          </tbody></table></div>` : `<div class="empty"><h3>No invoices found</h3><p>Invoices are issued from a confirmed order.</p></div>`;
+          </tbody></table></div>` : `<div class="empty"><h3>No invoices found</h3><p>Invoices are issued from a confirmed order, or directly under <a href="#/offline-invoices">Offline Invoices</a>.</p></div>`;
       const more = el.querySelector("#more");
       more.hidden = !data.next;
       more.innerHTML = data.next ? `<span class="muted">${items.length} shown</span><button class="btn btn-outline btn-sm" type="button" id="load-more">Load more</button>` : "";
@@ -167,8 +178,27 @@ const SHARE_STATUS = {
   sent_confirmed: ["green", "Marked as sent"]
 };
 
-function shareMessage(inv, link) {
+export function shareMessage(inv, link) {
   const c = inv.customer || {};
+  const business = inv.seller?.businessName || "ONE STOP SOLUTION (OSS)";
+  if (isOffline(inv)) {
+    return [
+      `Hello ${c.name},`,
+      "",
+      `Thank you for shopping with ${business}.`,
+      "",
+      `Your invoice ${inv.invoiceNo} has been generated.`,
+      "",
+      `Invoice Total: ${money(inv.totals?.grandTotal)}`,
+      inv.balanceDue > 0 && inv.balanceDue !== inv.totals?.grandTotal ? `Balance due: ${money(inv.balanceDue)}` : "",
+      "",
+      link ? `Please find your invoice here (link valid until ${date(link.expiresAt)}):\n${link.url}` : "Your invoice PDF is attached.",
+      "",
+      INVOICE_THANK_YOU,
+      "",
+      business
+    ].filter((line, i, all) => !(line === "" && all[i - 1] === "")).join("\n");
+  }
   return [
     `Hello ${c.name},`,
     "",
@@ -186,33 +216,41 @@ function shareMessage(inv, link) {
   ].filter((line, i, all) => !(line === "" && all[i - 1] === "")).join("\n");
 }
 
-async function renderDetail(el, ctx, id) {
+// `back` = list to return to: invoices (default) or offline-invoices.
+export async function renderDetail(el, ctx, id, { back = "invoices", backLabel = "Invoices", banner = "" } = {}) {
   let inv;
   try {
     inv = await api.get(`/admin/invoices/${encodeURIComponent(id)}`);
   } catch (error) {
-    el.innerHTML = errorState(error, () => render(el, ctx));
+    el.innerHTML = errorState(error, () => renderDetail(el, ctx, id, { back, backLabel }));
     return;
   }
   if (!ctx.isCurrent()) return;
-  const reload = () => render(el, ctx);
+  const reload = () => renderDetail(el, ctx, id, { back, backLabel });
   const active = inv.status === "issued";
   const share = inv.share || { status: "ready", events: [] };
   const [shareColor, shareLabel] = SHARE_STATUS[share.status] || SHARE_STATUS.ready;
   const lastEvent = share.events[share.events.length - 1];
   const filename = `${inv.invoiceNo.replace(/[^A-Za-z0-9-]+/g, "-")}.pdf`;
   const canNativeShare = typeof navigator.canShare === "function" && navigator.canShare({ files: [new File([new Blob(["x"])], "t.pdf", { type: "application/pdf" })] });
+  const offline = isOffline(inv);
+  const phone = normalizePhone(inv.customer?.phone);
+  const phoneOk = Boolean(phone) && isValidPhone(phone);
+  const origin = offline
+    ? '<span class="badge gold">Offline invoice</span>'
+    : `Order <a href="#/orders/${esc(inv.orderId)}">${esc(inv.orderNo)}</a>`;
 
   el.innerHTML = `
     <div class="page-head">
-      <div><a href="#/invoices" class="muted small">← Invoices</a><h1>${esc(inv.documentTitle)} ${esc(inv.invoiceNo)}</h1>
-        <p>${active ? paymentBadge(inv.paymentStatus) : '<span class="badge red">Cancelled</span>'} · Order <a href="#/orders/${esc(inv.orderId)}">${esc(inv.orderNo)}</a> · Issued ${date(inv.issuedAt, true)}</p></div>
+      <div><a href="#/${esc(back)}" class="muted small">← ${esc(backLabel)}</a><h1>${esc(inv.documentTitle)} ${esc(inv.invoiceNo)}</h1>
+        <p>${active ? paymentBadge(inv.paymentStatus) : '<span class="badge red">Cancelled</span>'} · ${origin} · Issued ${date(inv.issuedAt, true)}</p></div>
       <div class="page-actions no-print">
         <button class="btn btn-outline" type="button" id="pdf-btn">${icons.download}Download PDF</button>
         <button class="btn btn-outline" type="button" id="print-btn">${icons.print}Print</button>
       </div>
     </div>
 
+    ${banner}
     <div class="detail-grid">
       <div>${invoiceHtml(inv)}</div>
       <div class="grid no-print">
@@ -220,7 +258,8 @@ async function renderDetail(el, ctx, id) {
         <section class="card card-pad">
           <h2>Share with customer</h2>
           <p style="margin:0 0 10px"><span class="badge ${shareColor}" id="share-status">${shareLabel}</span>${lastEvent ? `<span class="muted small" style="display:block;margin-top:6px">Last action: ${esc(lastEvent.type.replace(/_/g, " "))} · ${date(lastEvent.at, true)} · ${esc(lastEvent.by)}</span>` : ""}</p>
-          <button class="btn btn-wa btn-lg btn-block" type="button" id="share-wa">${icons.whatsapp}Share Invoice on WhatsApp</button>
+          ${phoneOk ? "" : `<p class="notice warn" style="margin:0 0 10px">${inv.customer?.phone ? `The mobile number on this invoice (${esc(inv.customer.phone)}) is not a valid WhatsApp number.` : "No mobile number was given for this customer."} WhatsApp will open without a recipient — choose the contact yourself.</p>`}
+          <button class="btn btn-wa btn-lg btn-block" type="button" id="share-wa">${icons.whatsapp}${offline ? "Send Invoice on WhatsApp" : "Share Invoice on WhatsApp"}</button>
           <label class="check" style="margin-top:10px"><input type="checkbox" id="include-link" ${canNativeShare ? "" : "checked"}> Include a secure download link (expires in 7 days)</label>
           <p class="muted small" style="margin:8px 0 0">${canNativeShare
             ? "On this device the PDF is attached through your phone's share menu — choose WhatsApp and the customer."
@@ -246,11 +285,13 @@ async function renderDetail(el, ctx, id) {
 
         <section class="card card-pad">
           <h2>Corrections</h2>
-          <p class="muted small" style="margin-top:0">Issued invoices are never edited. To correct one, cancel it with a reason and issue a new invoice from the order.</p>
+          <p class="muted small" style="margin-top:0">Issued invoices are never edited. To correct one, cancel it with a reason and ${offline ? "create a corrected offline invoice. Cancelling puts any deducted stock back." : "issue a new invoice from the order."}</p>
           <button class="btn btn-danger btn-block" type="button" id="cancel-btn" ${inv.amountPaid > 0 ? "disabled" : ""}>Cancel invoice</button>
           ${inv.amountPaid > 0 ? '<p class="muted small">Void the recorded payments before cancelling.</p>' : ""}
         </section>` : `
-        <section class="card card-pad"><h2>Cancelled</h2><p>${esc(inv.cancelReason || "")}</p><p class="muted small">Cancelled ${date(inv.cancelledAt, true)} by ${esc(inv.cancelledBy?.email || "")}</p><a class="btn btn-outline btn-block" href="#/orders/${esc(inv.orderId)}">Go to order</a></section>`}
+        <section class="card card-pad"><h2>Cancelled</h2><p>${esc(inv.cancelReason || "")}</p><p class="muted small">Cancelled ${date(inv.cancelledAt, true)} by ${esc(inv.cancelledBy?.email || "")}</p>${offline
+          ? `<a class="btn btn-primary btn-block" href="#/offline-invoices/new?from=${encodeURIComponent(inv.id)}">Create corrected invoice</a>`
+          : `<a class="btn btn-outline btn-block" href="#/orders/${esc(inv.orderId)}">Go to order</a>`}</section>`}
       </div>
     </div>`;
 
@@ -279,13 +320,13 @@ async function renderDetail(el, ctx, id) {
 
   const openWhatsAppChat = async (blob, link) => {
     downloadBlob(blob, filename);
-    const phone = String(inv.customer?.phone || "").replace(/\D/g, "");
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(shareMessage(inv, link))}`;
+    // Only a validated number is put in the link; otherwise WhatsApp asks who to send to.
+    const url = `https://wa.me/${phoneOk ? phone : ""}?text=${encodeURIComponent(shareMessage(inv, link))}`;
     const win = window.open(url, "_blank");
     if (win) win.opener = null;
     await recordEvent({ type: "whatsapp_link" });
     el.querySelector("#share-help").innerHTML = `<p class="notice" style="margin:12px 0 0">
-      <strong>${esc(filename)}</strong> was downloaded. ${win ? "WhatsApp opened" : "Open WhatsApp"} with your message to ${esc(phoneDisplay(inv.customer?.phone))} and attach the PDF (📎 → Document) before sending${link ? ", or send the message with the secure link" : ""}.
+      <strong>${esc(filename)}</strong> was downloaded. ${win ? "WhatsApp opened" : "Open WhatsApp"} with your message${phoneOk ? ` to ${esc(phoneDisplay(phone))}` : ""}. Attach the PDF (📎 → Document) before sending${link ? ", or send the message with the secure link" : ""}. Nothing is sent until you press send in WhatsApp.
       <a class="btn btn-wa btn-sm" style="margin-top:8px" href="${esc(url)}" target="_blank" rel="noopener">${icons.whatsapp}Open WhatsApp chat</a></p>`;
   };
 
@@ -392,7 +433,7 @@ async function renderDetail(el, ctx, id) {
   }));
 
   el.querySelector("#cancel-btn")?.addEventListener("click", async () => {
-    const reason = await confirmDialog({ title: `Cancel invoice ${esc(inv.invoiceNo)}?`, message: "The invoice stays on record marked CANCELLED. You can then issue a new invoice from the order.", confirmText: "Cancel invoice", danger: true, input: { label: "Reason for cancellation", required: true, min: 3, requiredMessage: "Enter a reason (at least 3 characters)." } });
+    const reason = await confirmDialog({ title: `Cancel invoice ${esc(inv.invoiceNo)}?`, message: offline ? "The invoice stays on record marked CANCELLED and any stock it deducted is put back. You can then create a corrected invoice." : "The invoice stays on record marked CANCELLED. You can then issue a new invoice from the order.", confirmText: "Cancel invoice", danger: true, input: { label: "Reason for cancellation", required: true, min: 3, requiredMessage: "Enter a reason (at least 3 characters)." } });
     if (reason === false) return;
     try { await api.post(`/admin/invoices/${encodeURIComponent(inv.id)}/cancel`, { reason }); toast("Invoice cancelled."); reload(); }
     catch (error) { toastError(error); }
