@@ -17,3 +17,15 @@ secrets/
 *-firebase-adminsdk-*.json
 one-stop-72ee5-*.json
 service-account*.json
+
+# Customer documents and exports: never commit or publish (the repo root is
+# served as static files on Vercel). Use synthetic data for any sample.
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.docx
+private/
+exports/
+invoices-export/
+hs_err_pid*.log

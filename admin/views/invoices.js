@@ -7,7 +7,7 @@ import {
   paymentBadge, phoneDisplay, selectField, setBusy, showFormErrors, toRupeesInput, toast, toastError
 } from "../ui.js";
 import { amountInWords, stateName } from "../../shared/pricing.js";
-import { INVOICE_THANK_YOU, PAYMENT_METHODS, isValidPhone, normalizePhone } from "../../shared/constants.js";
+import { INVOICE_THANK_YOU, PAYMENT_METHODS, balanceDueText, invoiceTermsFor, isValidPhone, normalizePhone, separateShippingAddress } from "../../shared/constants.js";
 
 export async function render(el, ctx) {
   const [id] = ctx.params;
@@ -24,6 +24,7 @@ export function invoiceHtml(inv) {
   const t = inv.totals || {};
   const gst = inv.taxSnapshot?.mode === "gst";
   const lines = inv.lines || [];
+  const terms = invoiceTermsFor(inv);
   return `
     <article class="invoice-sheet">
       <div class="inv-top"></div>
@@ -58,7 +59,7 @@ export function invoiceHtml(inv) {
         </div>
         <div>
           <h3>Ship to</h3>
-          <p style="white-space:pre-line">${esc(c.shippingAddress || c.billingAddress || "Same as billing")}</p>
+          <p style="white-space:pre-line">${esc(separateShippingAddress(c) || "Same as billing address")}</p>
           ${inv.placeOfSupply ? `<p>Place of supply: ${esc(stateName(inv.placeOfSupply))} (${esc(inv.placeOfSupply)})</p>` : ""}
         </div>
       </div>
@@ -91,22 +92,21 @@ export function invoiceHtml(inv) {
           ${t.roundOff ? `<div><dt>Round off</dt><dd>${t.roundOff > 0 ? "+" : "-"}${money(Math.abs(t.roundOff))}</dd></div>` : ""}
           <div class="grand"><dt>Grand total</dt><dd>${money(t.grandTotal)}</dd></div>
           <div><dt>Amount paid</dt><dd>${money(inv.amountPaid || 0)}</dd></div>
-          <div><dt><strong>Balance due</strong></dt><dd><strong>${money(inv.balanceDue ?? t.grandTotal)}</strong></dd></div>
+          <div><dt><strong>Balance due</strong></dt><dd><strong>${esc(balanceDueText(inv, money))}</strong></dd></div>
           ${inv.status !== "cancelled" && !inv.preview ? `<div><dt>Payment status</dt><dd>${paymentBadge(inv.paymentStatus)}</dd></div>` : ""}
         </dl>
       </div>
       <div class="inv-notes">
         ${inv.paymentDetails ? `<div><h3>Payment details</h3>${esc(inv.paymentDetails)}</div>` : ""}
         ${inv.notes ? `<div><h3>Notes</h3>${esc(inv.notes)}</div>` : ""}
-        ${inv.terms ? `<div><h3>${inv.standardTerms ? "Additional terms" : "Terms & conditions"}</h3>${esc(inv.terms)}</div>` : ""}
+        ${inv.terms ? `<div><h3>Additional terms</h3>${esc(inv.terms)}</div>` : ""}
         ${inv.replaces ? `<div><h3>Replaces</h3>This invoice replaces cancelled invoice ${esc(inv.replaces.invoiceNo)}.</div>` : ""}
       </div>
-      ${inv.standardTerms ? `
-      <section class="inv-terms" aria-label="${esc(inv.standardTerms.title)}">
-        <h3>${esc(inv.standardTerms.title)}</h3>
-        <p class="inv-terms-head">${esc(inv.standardTerms.headline)}</p>
-        ${inv.standardTerms.lines.map(line => `<p>${esc(line)}</p>`).join("")}
-      </section>` : ""}
+      <section class="inv-terms" aria-label="${esc(terms.title)}">
+        <h3>${esc(terms.title)}</h3>
+        <p class="inv-terms-head">${esc(terms.headline)}</p>
+        ${terms.lines.map(line => `<p>${esc(line)}</p>`).join("")}
+      </section>
       <p class="inv-thanks">${esc(INVOICE_THANK_YOU)}</p>
       <p class="inv-foot small muted">This is a computer-generated ${esc(String(inv.documentTitle).toLowerCase())}.</p>
     </article>`;

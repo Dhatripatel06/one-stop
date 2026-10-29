@@ -81,6 +81,26 @@ for (const name of [".env", ".env.local"]) {
   }
 }
 
+// 6b. Nothing private may reach the served tree. The repo root is the Vercel
+//     output directory, so a file here that .vercelignore does not exclude is
+//     public. Customer documents, key files, env files and logs fail the build
+//     instead of being published.
+const PRIVATE_FILE = /(\.(pdf|xlsx?|csv|docx|log)$|(^|\/)\.env(\.(?!example$).+)?$|service-account|firebase-adminsdk|(^|\/)one-stop-72ee5-[^/]*\.json$)/i;
+const ignoreRules = fs.existsSync(path.join(root, ".vercelignore"))
+  ? fs.readFileSync(path.join(root, ".vercelignore"), "utf8").split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("#") && !l.startsWith("!"))
+  : [];
+const ignoreRegExp = rule => new RegExp("^" + rule.replace(/\/$/, "").replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*") + "$");
+const vercelIgnored = file => ignoreRules.some(rule => {
+  const re = ignoreRegExp(rule);
+  const parts = file.split("/");
+  return parts.some((part, i) => re.test(rule.includes("/") ? parts.slice(0, i + 1).join("/") : part));
+});
+for (const file of files.map(rel)) {
+  if (PRIVATE_FILE.test(file) && !vercelIgnored(file)) {
+    problems.push(`${file} looks private (customer document, key, env file or log) and would be served publicly. Move it outside the project or add it to .vercelignore.`);
+  }
+}
+
 // 7. Product image manifest (used by the deployed API to validate image paths)
 const { writeManifest, listLocalImages } = await import("../server/local-images.js");
 const manifestFile = path.join(root, "images", "manifest.json");

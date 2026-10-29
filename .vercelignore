@@ -4,3 +4,23 @@ data
 .emulator-data
 firebase-debug.log
 firestore-debug.log
+# Never upload secrets or customer documents. A CLI deploy (`vercel deploy`)
+# uses this file INSTEAD of .gitignore, so these must be repeated here.
+.env
+.env.*
+!.env.example
+*service-account*.json
+*-firebase-adminsdk-*.json
+one-stop-72ee5-*.json
+secrets
+private
+exports
+invoices-export
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.log
+hs_err_pid*.log
+.git

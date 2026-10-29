@@ -72,6 +72,27 @@ export const INVOICE_TERMS = {
 
 export const INVOICE_THANK_YOU = "Thank you for doing business with us.";
 
+// Wording only: the stored balance (0 once cancelled) is shown with a note.
+export function balanceDueText(invoice, format) {
+  const amount = format(invoice.balanceDue ?? invoice.totals?.grandTotal);
+  return invoice.status === "cancelled" ? `${amount} (Invoice cancelled)` : amount;
+}
+
+// Terms to print: the copy stored on the invoice, or the standard terms for
+// invoices issued before terms were stored. Stored records are never rewritten.
+export function invoiceTermsFor(invoice) {
+  return invoice?.standardTerms || INVOICE_TERMS;
+}
+
+// Ship-to text only when it differs from billing. Website checkout stores the
+// billing address as the shipping address when "same as billing" is ticked.
+export function separateShippingAddress(customer = {}) {
+  const normalize = value => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+  const shipping = String(customer.shippingAddress || "").trim();
+  if (!shipping || normalize(shipping) === normalize(customer.billingAddress)) return "";
+  return shipping;
+}
+
 // Where an invoice came from. Invoices issued before this field existed have
 // no `source`; they were all issued from an order.
 export const INVOICE_SOURCES = {

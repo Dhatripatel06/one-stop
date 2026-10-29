@@ -290,6 +290,36 @@ describe("offline invoices: payments and corrections", () => {
     assert.equal(cust.get("totalBilled"), 0);
   });
 
+  test("a cancelled online invoice keeps its numbers and totals; no duplicate is created", async () => {
+    const before = (await db().collection("invoices").count().get()).data().count;
+    const res = await owner.post(`/admin/invoices/${ids.online}/cancel`, { reason: "xyz" });
+    assert.equal(res.status, 200, JSON.stringify(res.data));
+    const inv = res.data;
+    assert.equal(inv.status, "cancelled");
+    assert.match(inv.invoiceNo, /^OSS\/\d{4}-\d{2}\/\d{4}$/);
+    assert.match(inv.orderNo, /^ORD-\d{4}-\d{5}$/);
+    assert.equal(inv.totals.grandTotal, 7600, "the original amount (₹75.50, rounded off) stays on record");
+    assert.equal(inv.amountPaid, 0);
+    assert.equal(inv.balanceDue, 0, "nothing is owed on a cancelled invoice");
+    assert.equal((await db().collection("invoices").count().get()).data().count, before);
+    const pdf = await owner.get(`/admin/invoices/${ids.online}/pdf`);
+    assert.equal(pdf.status, 200);
+    assert.equal(pdf.data.subarray(0, 5).toString(), "%PDF-");
+  });
+
+  test("invoices stored before terms existed are still readable and render", async () => {
+    const { FieldValue } = await import("firebase-admin/firestore");
+    await db().collection("invoices").doc(ids.online).update({ standardTerms: FieldValue.delete(), source: FieldValue.delete() });
+    const inv = await owner.get(`/admin/invoices/${ids.online}`);
+    assert.equal(inv.status, 200);
+    assert.equal(inv.data.standardTerms, undefined);
+    const pdf = await owner.get(`/admin/invoices/${ids.online}/pdf`);
+    assert.equal(pdf.status, 200);
+    assert.equal(pdf.data.subarray(0, 5).toString(), "%PDF-");
+    const list = await owner.get("/admin/offline-invoices?limit=100");
+    assert.ok(!list.data.items.some(i => i.id === ids.online), "legacy online invoices never appear as offline");
+  });
+
   test("issued offline invoices are not editable through the API", async () => {
     assert.equal((await owner.patch(`/admin/invoices/${ids.ravi}`, { totals: { grandTotal: 1 } })).status, 405);
     assert.equal((await owner.put(`/admin/invoices/${ids.ravi}`, {})).status, 405);

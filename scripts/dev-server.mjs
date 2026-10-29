@@ -76,7 +76,7 @@ function serveStatic(req, res) {
   const url = new URL(req.url, "http://localhost");
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === "/") pathname = "/index.html";
-  if (BLOCKED.test(pathname) || pathname.includes("..") || /\.(env|log|md)$/i.test(pathname) || pathname.endsWith("package.json")) {
+  if (BLOCKED.test(pathname) || pathname.includes("..") || /\.(env|log|md|pdf|xlsx?|csv|docx)$/i.test(pathname) || /service-account|firebase-adminsdk|one-stop-72ee5-.*\.json/i.test(pathname) || pathname.endsWith("package.json")) {
     res.statusCode = 404;
     return res.end("Not found");
   }

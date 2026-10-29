@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
 import { amountInWords, formatINR, stateName } from "../shared/pricing.js";
-import { INVOICE_THANK_YOU, PAYMENT_METHODS } from "../shared/constants.js";
+import { INVOICE_THANK_YOU, PAYMENT_METHODS, balanceDueText, invoiceTermsFor, separateShippingAddress } from "../shared/constants.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
@@ -146,7 +146,7 @@ function draw(doc, invoice) {
     customer.email,
     customer.gstin && `GSTIN: ${customer.gstin}`
   ].filter(Boolean);
-  const shipLines = [customer.shippingAddress || customer.billingAddress || "Same as billing"].filter(Boolean);
+  const shipLines = [separateShippingAddress(customer) || "Same as billing address"];
   if (invoice.placeOfSupply) shipLines.push(`Place of supply: ${stateName(invoice.placeOfSupply)} (${invoice.placeOfSupply})`);
 
   const partyTop = y;
@@ -264,10 +264,11 @@ function draw(doc, invoice) {
   text(doc, "Grand Total", totalsX, y + 3, { font: "bold", size: 10.5, color: "#ffffff", width: 120 });
   text(doc, money(t.grandTotal), totalsX + 100, y + 3, { font: "bold", size: 11, color: "#ffffff", width: 130, align: "right" });
   y += 32;
-  const paidRows = [["Amount paid", money(invoice.amountPaid || 0)], ["Balance due", money(invoice.balanceDue ?? t.grandTotal)]];
+  const paidRows = [["Amount paid", money(invoice.amountPaid || 0)], ["Balance due", balanceDueText(invoice, money)]];
   for (const [label, value] of paidRows) {
     text(doc, label, totalsX, y, { size: 9, color: MUTED, width: 120 });
-    text(doc, value, totalsX + 110, y, { font: label === "Balance due" ? "bold" : "regular", size: 9, width: 120, align: "right" });
+    // Value starts after the label so "₹0.00 (Invoice cancelled)" fits on one line.
+    text(doc, value, totalsX + 60, y, { font: label === "Balance due" ? "bold" : "regular", size: 9, width: 170, align: "right" });
     y += 15;
   }
   const status = { unpaid: "Unpaid", partial: "Partially paid", paid: "Paid" }[invoice.paymentStatus] || "";
@@ -312,7 +313,7 @@ function draw(doc, invoice) {
   if (invoice.paymentDetails) blocks.push(["Payment details", invoice.paymentDetails]);
   if (invoice.notes) blocks.push(["Notes", invoice.notes]);
   // Owner-written terms from Settings sit alongside the standard terms below.
-  if (invoice.terms) blocks.push([invoice.standardTerms ? "Additional terms" : "Terms & conditions", invoice.terms]);
+  if (invoice.terms) blocks.push(["Additional terms", invoice.terms]);
   if (invoice.replaces) blocks.push(["Replaces", `This invoice replaces cancelled invoice ${invoice.replaces.invoiceNo}.`]);
 
   for (const [title, body] of blocks) {
@@ -329,7 +330,7 @@ function draw(doc, invoice) {
   /* ---------------- standard terms + closing line ----------------
      Kept together on the final page: if they do not fit below the
      content, both move to a new page instead of splitting. */
-  const terms = invoice.standardTerms;
+  const terms = invoiceTermsFor(invoice);
   const termsWidth = Math.min(CONTENT, 330);
   const closingTop = PAGE.height - 70; // just above the footer rule
   let termsHeight = 0;
