@@ -33,9 +33,17 @@ function money(paise) {
   return formatINR(paise ?? 0);
 }
 
-function date(value) {
+// DD-MM-YYYY. Plain YYYY-MM-DD dates are reordered as text so they can never
+// shift a day; timestamps are read on the IST calendar day they happened.
+export function invoiceDate(value) {
   if (!value) return "";
-  return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+  const plain = typeof value === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (plain) return `${plain[3]}-${plain[2]}-${plain[1]}`;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kolkata" })
+    .formatToParts(d).map(p => [p.type, p.value]));
+  return `${parts.day}-${parts.month}-${parts.year}`;
 }
 
 function localLogo(logo) {
@@ -112,7 +120,7 @@ function draw(doc, invoice) {
   // Offline invoices have no order, so the row is left out rather than blank.
   const meta = [
     ["Invoice No.", invoice.invoiceNo],
-    ["Invoice Date", date(invoice.issuedAt)],
+    ["Invoice Date", invoiceDate(invoice.issuedAt)],
     invoice.orderNo && ["Order No.", invoice.orderNo]
   ].filter(Boolean);
   let my = y + 30;
@@ -165,9 +173,9 @@ function draw(doc, invoice) {
   const columns = gst
     ? [
       { key: "no", label: "#", width: 20, align: "left" },
-      { key: "item", label: "Item", width: 165, align: "left" },
-      { key: "qty", label: "Qty", width: 38, align: "right" },
+      { key: "item", label: "Particulars", width: 165, align: "left" },
       { key: "rate", label: "Rate", width: 62, align: "right" },
+      { key: "qty", label: "Qnt", width: 38, align: "right" },
       { key: "taxable", label: "Taxable", width: 70, align: "right" },
       { key: "gst", label: "GST", width: 38, align: "right" },
       { key: "tax", label: "Tax", width: 52, align: "right" },
@@ -175,9 +183,9 @@ function draw(doc, invoice) {
     ]
     : [
       { key: "no", label: "#", width: 22, align: "left" },
-      { key: "item", label: "Item", width: 225, align: "left" },
-      { key: "qty", label: "Qty", width: 50, align: "right" },
+      { key: "item", label: "Particulars", width: 225, align: "left" },
       { key: "rate", label: "Rate", width: 72, align: "right" },
+      { key: "qty", label: "Qnt", width: 50, align: "right" },
       { key: "discount", label: "Discount", width: 72, align: "right" },
       { key: "amount", label: "Amount", width: CONTENT - 441, align: "right" }
     ];
@@ -308,7 +316,7 @@ function draw(doc, invoice) {
   const blocks = [];
   const activePayments = (invoice.payments || []).filter(p => p.status !== "void");
   if (activePayments.length) {
-    blocks.push(["Payments received", activePayments.map(p => `${p.date}  ·  ${PAYMENT_METHODS[p.method] || p.method}  ·  ${money(p.amount)}${p.reference ? `  ·  Ref ${p.reference}` : ""}`).join("\n")]);
+    blocks.push(["Payments received", activePayments.map(p => `${invoiceDate(p.date)}  ·  ${PAYMENT_METHODS[p.method] || p.method}  ·  ${money(p.amount)}${p.reference ? `  ·  Ref ${p.reference}` : ""}`).join("\n")]);
   }
   if (invoice.paymentDetails) blocks.push(["Payment details", invoice.paymentDetails]);
   if (invoice.notes) blocks.push(["Notes", invoice.notes]);

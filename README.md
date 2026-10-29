@@ -1,6 +1,6 @@
 # ONE STOP SOLUTION (OSS) — Catalogue, Inventory, Orders & Billing
 
-*Every Problem One Solution*
+*Every Problem, One Solution*
 
 A customer-facing wholesale catalogue with WhatsApp ordering, plus a protected admin panel for products, categories, stock, orders, customers and GST-ready invoices.
 

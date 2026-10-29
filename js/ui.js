@@ -299,7 +299,7 @@ export function renderLayout(active = "", business = DEFAULT_BUSINESS) {
           <div class="footer-grid">
             <div class="footer-col">
               <h2>About</h2>
-              <p>Wholesale catalogue. Build your order online and confirm it with us on WhatsApp.</p>
+              <p>Browse the catalogue, build your order online and confirm it with us on WhatsApp.</p>
             </div>
             <nav class="footer-col" aria-label="Footer">
               <h2>Browse</h2>

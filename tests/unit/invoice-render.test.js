@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { INVOICE_TERMS, balanceDueText, invoiceTermsFor, separateShippingAddress } from "../../shared/constants.js";
 import { formatINR } from "../../shared/pricing.js";
-import { renderInvoicePdf } from "../../server/invoice-pdf.js";
+import PDFDocument from "pdfkit";
+import { invoiceDate, renderInvoicePdf } from "../../server/invoice-pdf.js";
 
 test("invoices issued before terms were stored still get the standard terms", () => {
   assert.equal(invoiceTermsFor({}), INVOICE_TERMS);
@@ -46,6 +47,67 @@ test("PDFs render for legacy cancelled, online and offline invoices", async () =
     assert.equal(pdf.subarray(0, 5).toString(), "%PDF-");
     assert.equal((pdf.toString("latin1").match(/\/Type \/Page\b/g) || []).length, 1, "terms fit on one page");
   }
+});
+
+// Records every string drawn, with its position, while one invoice renders.
+async function drawnText(invoice) {
+  const original = PDFDocument.prototype.text;
+  const drawn = [];
+  PDFDocument.prototype.text = function (value, x, y, ...rest) {
+    drawn.push({ value: String(value), x, y });
+    return original.call(this, value, x, y, ...rest);
+  };
+  try {
+    await renderInvoicePdf(invoice);
+  } finally {
+    PDFDocument.prototype.text = original;
+  }
+  return drawn;
+}
+
+const HEADINGS = ["Particulars", "Rate", "Qnt", "Amount"];
+
+for (const [label, taxSnapshot] of [["non-GST", { mode: "none" }], ["GST", { mode: "gst", interState: false }]]) {
+  test(`${label} item table reads Particulars | Rate | Qnt | Amount with values under their headings`, async () => {
+    const line = { ...base.lines[0], qty: 3, unitPrice: 2500, listPrice: 2500, gross: 7500, taxable: 7500, total: 7500, gstRate: 0 };
+    const drawn = await drawnText({ ...base, taxSnapshot, lines: [line], status: "issued", balanceDue: 7500, source: "offline" });
+
+    const headings = HEADINGS.map(h => drawn.find(d => d.value === h));
+    headings.forEach((h, i) => assert.ok(h, `${HEADINGS[i]} heading is drawn`));
+    assert.equal(drawn.some(d => d.value === "Qty" || d.value === "Item"), false, "old labels are gone");
+    const xs = headings.map(h => h.x);
+    assert.deepEqual([...xs].sort((a, b) => a - b), xs, "headings run left to right in the required order");
+    assert.ok(headings.every(h => h.y === headings[0].y), "headings share one row");
+
+    // Each value sits in the same column as its heading.
+    const row = drawn.filter(d => d.y > headings[0].y && d.y < headings[0].y + 40);
+    const under = heading => row.find(d => d.x === heading.x)?.value;
+    assert.equal(under(headings[0]), "SAMPLE ITEM");
+    assert.equal(under(headings[1]), "₹25.00", "rate");
+    assert.equal(under(headings[2]), "3 pcs", "quantity");
+    assert.equal(under(headings[3]), "₹75.00", "amount");
+  });
+}
+
+test("invoice dates print as DD-MM-YYYY on the IST calendar day", () => {
+  assert.equal(invoiceDate("2026-10-29T06:00:00Z"), "29-10-2026");
+  assert.equal(invoiceDate("2026-10-28T19:00:00Z"), "29-10-2026", "00:30 IST is already the 29th");
+  assert.equal(invoiceDate("2026-10-29T18:00:00Z"), "29-10-2026", "23:30 IST is still the 29th");
+  assert.equal(invoiceDate(new Date("2026-01-05T04:00:00Z")), "05-01-2026", "zero-padded");
+  assert.equal(invoiceDate("2026-10-29"), "29-10-2026", "stored payment dates are reordered, never shifted");
+  assert.equal(invoiceDate(""), "");
+  assert.equal(invoiceDate(null), "");
+});
+
+test("the PDF shows the stored issue date and payment dates as DD-MM-YYYY", async () => {
+  const drawn = await drawnText({
+    ...base, issuedAt: "2026-10-28T19:00:00Z", status: "issued", balanceDue: 2500, amountPaid: 5000, source: "order",
+    payments: [{ date: "2026-10-29", method: "upi", amount: 5000, status: "recorded" }]
+  });
+  const label = drawn.find(d => d.value === "Invoice Date");
+  const value = drawn.find(d => d.y === label.y && d.x > label.x);
+  assert.equal(value.value, "29-10-2026", "uses issuedAt, not today");
+  assert.ok(drawn.some(d => d.value.startsWith("29-10-2026  ·  ")), "payment line uses the same format");
 });
 
 test("cancelled invoices label the balance; amounts are unchanged", () => {

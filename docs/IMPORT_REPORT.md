@@ -1,6 +1,6 @@
 # OSS Catalogue Import Report
 
-Generated: 2026-10-27T06:54:38.608Z
+Generated: 2026-10-29T06:56:28.773Z
 
 Sources, in priority order: local project files (products.json, images), legacy Firestore `products` collection (snapshot in `data/legacy-firestore-products.json`), live site https://oss-vert.vercel.app (identical to the repository apart from line endings), Instagram @onestopsolution4325 (only profile metadata is public: 36 posts; post content requires login and was not accessed).
 
@@ -8,46 +8,46 @@ Sources, in priority order: local project files (products.json, images), legacy 
 
 | SKU | Name | Category | Source | Image | Image check |
 |---|---|---|---|---|---|
-| OSS_001 | DOUBLE GRID SOAP BOX | Bathroom Accessories | products.json + Firestore snapshot (oss-digital-catalog) | OSS_001.jpg | ✅ matches product |
-| OSS_002 | MINI POPCORN MAKER | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_002.jpg | ✅ matches product |
-| OSS_003 | 2L MOTIVATIONAL WATTER BOTTLE | Water Bottle | products.json + Firestore snapshot (oss-digital-catalog) | OSS_003.jpg | ✅ matches product |
-| OSS_004 | 5M OUTDOOR CLOTHESLINE | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_004.jpg | ✅ matches product |
-| OSS_005 | 10M OUTDOOR CLOTHESLINE | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_005.jpg | ✅ matches product |
-| OSS_006 | 48PCS CAR CONTAINER | Toys | products.json + Firestore snapshot (oss-digital-catalog) | OSS_006.jpg | ✅ matches product |
-| OSS_007 | 3PCS MOTIVATION WATER BOTTLE | Water Bottle | products.json + Firestore snapshot (oss-digital-catalog) | OSS_007.jpg | ✅ matches product |
-| OSS_008 | HOT AND COLD DORI BOTTLE | Water Bottle | products.json + Firestore snapshot (oss-digital-catalog) | OSS_008.jpg | ✅ matches product |
-| OSS_009 | 1000ML STEEL WATER BOTTLE | Water Bottle | products.json + Firestore snapshot (oss-digital-catalog) | OSS_009.jpg | ✅ matches product |
-| OSS_010 | VACCUM FLASK SET WITH 3 CUPS | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_010.jpg | ✅ matches product |
-| OSS_011 | PLUG MOSQUITO KILLER LAMP | Electric & Smart Gadgets | products.json + Firestore snapshot (oss-digital-catalog) | OSS_011.jpg | ✅ matches product |
-| OSS_012 | ELECTRIC GAS LIGHTER | Electric & Smart Gadgets | products.json + Firestore snapshot (oss-digital-catalog) | OSS_012.jpg | ✅ matches product |
-| OSS_013 | PORTABLE CAR AIR MATTRESS | Car Accessories | products.json + Firestore snapshot (oss-digital-catalog) | OSS_013.jpg | ✅ matches product |
-| OSS_014 | SOLAR RECHARGEABLE LED FLOOD LIGHT | Electric & Smart Gadgets | products.json + Firestore snapshot (oss-digital-catalog) | OSS_014.jpg | ✅ matches product |
-| OSS_015 | ANTI SLIP TAPE WITH GLOW IN DARK STRIPE | Tools And Hardware | products.json + Firestore snapshot (oss-digital-catalog) | OSS_015.jpg | ✅ matches product |
-| OSS_016 | PORTABLE INFLATABLE BED | Folding Furniture | products.json + Firestore snapshot (oss-digital-catalog) | OSS_016.jpg | ✅ matches product |
-| OSS_017 | 4PCS MAGNETIC CAR WINDOW CURTAIN | Car Accessories | products.json + Firestore snapshot (oss-digital-catalog) | OSS_017.jpg | ✅ matches product |
-| OSS_018 | CLOTH DRYING ROPE WITH 12 CLIPS | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_018.jpg | ✅ matches product |
-| OSS_019 | PORTABLE MESH NEBULIZER MACHINE | Health & Personal Care | products.json + Firestore snapshot (oss-digital-catalog) | OSS_019.jpg | ✅ matches product |
-| OSS_020 | 30PCS SELF ADHESIVE TRANSPARENT BOOK COVER | Smart Stationery | products.json + Firestore snapshot (oss-digital-catalog) | OSS_020.jpg | ✅ matches product |
-| OSS_021 | 7 INCH MOVING SAND ART | Gifts & Decor | products.json + Firestore snapshot (oss-digital-catalog) | OSS_021.jpg | ✅ matches product |
-| OSS_022 | ALL IN ONE 60W USB FAST CHARGING TRAVEL DATA CABLE SET | Smart Gadgets | products.json + Firestore snapshot (oss-digital-catalog) | OSS_022.jpg | ✅ matches product |
-| OSS_023 | PORTABLE FOLDING CHAIR | Folding Furniture | products.json + Firestore snapshot (oss-digital-catalog) | OSS_023.jpg | ✅ matches product |
-| OSS_024 | SLIM FLOOR WIPER MOP WITH SILICONE BLADE & TELESCOPIC HANDLE | Multipurpose Cleaning Tool | products.json + Firestore snapshot (oss-digital-catalog) | OSS_024.jpg | ✅ matches product |
-| OSS_025 | ANTI VIBRATION PADS | Smart Gadgets | products.json + Firestore snapshot (oss-digital-catalog) | OSS_025.jpg | ✅ matches product |
-| OSS_026 | DANCING JELLYFISH TOY WITH MUSIC & MOVEMENT | Toys | products.json + Firestore snapshot (oss-digital-catalog) | OSS_026.jpg | ✅ matches product |
-| OSS_027 | 360°METAL DESKTOP MOBILE PHONE STAND | Mobile Accessories | products.json + Firestore snapshot (oss-digital-catalog) | OSS_027.jpg | ✅ matches product |
-| OSS_028 | ELECTRIC WATER HOT BAG | Health & Personal Care | products.json + Firestore snapshot (oss-digital-catalog) | OSS_028.jpg | ✅ matches product |
-| OSS_029 | 2.5×6 NON ADJUSTABLE FOLDING BED | Folding Furniture | products.json + Firestore snapshot (oss-digital-catalog) | OSS_029.jpg | ✅ matches product |
-| OSS_030 | 2.5×6 ADJUSTABLE FOLDING BED | Folding Furniture | products.json + Firestore snapshot (oss-digital-catalog) | OSS_030.jpg | ✅ matches product |
-| OSS_031 | HOT & COLD 1000ML STEEL WATER BOTTLE | Water Bottle | products.json + Firestore snapshot (oss-digital-catalog) | OSS_031.jpg | ✅ matches product |
-| OSS_032 | 2PCS HD VISION DRIVING GLASSES | Car Accessories | products.json + Firestore snapshot (oss-digital-catalog) | OSS_032.jpg | ✅ matches product |
-| OSS_033 | PORTABLE 2 IN 1 CAMPING GAS STOVE | Travel Accessories | products.json + Firestore snapshot (oss-digital-catalog) | OSS_033.jpg | ✅ matches product |
-| OSS_034 | ELECTRIC KAPOOR DANI WITH NIGHT LAMP | Gifts & Decor | products.json + Firestore snapshot (oss-digital-catalog) | OSS_034.jpg | ✅ matches product |
-| OSS_035 | WATER-ABSORBING RUBBER DOORMAT | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_035.jpg | ✅ matches product |
-| OSS_036 | MAGIC PRACTICE COPYBOOK | Smart Stationery | products.json + Firestore snapshot (oss-digital-catalog) | OSS_036.jpg | ✅ matches product |
-| OSS_037 | 40×40 MICROFIBER CLOTH (ONLY YELLOW) | Multipurpose Cleaning Cloth | products.json + Firestore snapshot (oss-digital-catalog) | OSS_037.jpg | ✅ matches product |
-| OSS_038 | SELF ADHESIVE DOOR BOTTOM SEALING STRIP GUARD | Home & Kitchen | products.json + Firestore snapshot (oss-digital-catalog) | OSS_038.jpg | ✅ matches product |
-| OSS_039 | COMPUTER SHORTCUT KEYBOARD MAT | Smart Gadgets | Firestore snapshot (oss-digital-catalog) (added by admin) | external URL | ⚠️ needs review |
-| OSS_040 | SQUARE BATHROOM MAT | Home & Kitchen | Firestore snapshot (oss-digital-catalog) (added by admin) | OSS_040.jpg | ✅ matches product |
+| OSS_001 | DOUBLE GRID SOAP BOX | Bathroom Accessories | products.json + Firestore | OSS_001.jpg | ✅ matches product |
+| OSS_002 | MINI POPCORN MAKER | Home & Kitchen | products.json + Firestore | OSS_002.jpg | ✅ matches product |
+| OSS_003 | 2L MOTIVATIONAL WATTER BOTTLE | Water Bottle | products.json + Firestore | OSS_003.jpg | ✅ matches product |
+| OSS_004 | 5M OUTDOOR CLOTHESLINE | Home & Kitchen | products.json + Firestore | OSS_004.jpg | ✅ matches product |
+| OSS_005 | 10M OUTDOOR CLOTHESLINE | Home & Kitchen | products.json + Firestore | OSS_005.jpg | ✅ matches product |
+| OSS_006 | 48PCS CAR CONTAINER | Toys | products.json + Firestore | OSS_006.jpg | ✅ matches product |
+| OSS_007 | 3PCS MOTIVATION WATER BOTTLE | Water Bottle | products.json + Firestore | OSS_007.jpg | ✅ matches product |
+| OSS_008 | HOT AND COLD DORI BOTTLE | Water Bottle | products.json + Firestore | OSS_008.jpg | ✅ matches product |
+| OSS_009 | 1000ML STEEL WATER BOTTLE | Water Bottle | products.json + Firestore | OSS_009.jpg | ✅ matches product |
+| OSS_010 | VACCUM FLASK SET WITH 3 CUPS | Home & Kitchen | products.json + Firestore | OSS_010.jpg | ✅ matches product |
+| OSS_011 | PLUG MOSQUITO KILLER LAMP | Electric & Smart Gadgets | products.json + Firestore | OSS_011.jpg | ✅ matches product |
+| OSS_012 | ELECTRIC GAS LIGHTER | Electric & Smart Gadgets | products.json + Firestore | OSS_012.jpg | ✅ matches product |
+| OSS_013 | PORTABLE CAR AIR MATTRESS | Car Accessories | products.json + Firestore | OSS_013.jpg | ✅ matches product |
+| OSS_014 | SOLAR RECHARGEABLE LED FLOOD LIGHT | Electric & Smart Gadgets | products.json + Firestore | OSS_014.jpg | ✅ matches product |
+| OSS_015 | ANTI SLIP TAPE WITH GLOW IN DARK STRIPE | Tools And Hardware | products.json + Firestore | OSS_015.jpg | ✅ matches product |
+| OSS_016 | PORTABLE INFLATABLE BED | Folding Furniture | products.json + Firestore | OSS_016.jpg | ✅ matches product |
+| OSS_017 | 4PCS MAGNETIC CAR WINDOW CURTAIN | Car Accessories | products.json + Firestore | OSS_017.jpg | ✅ matches product |
+| OSS_018 | CLOTH DRYING ROPE WITH 12 CLIPS | Home & Kitchen | products.json + Firestore | OSS_018.jpg | ✅ matches product |
+| OSS_019 | PORTABLE MESH NEBULIZER MACHINE | Health & Personal Care | products.json + Firestore | OSS_019.jpg | ✅ matches product |
+| OSS_020 | 30PCS SELF ADHESIVE TRANSPARENT BOOK COVER | Smart Stationery | products.json + Firestore | OSS_020.jpg | ✅ matches product |
+| OSS_021 | 7 INCH MOVING SAND ART | Gifts & Decor | products.json + Firestore | OSS_021.jpg | ✅ matches product |
+| OSS_022 | ALL IN ONE 60W USB FAST CHARGING TRAVEL DATA CABLE SET | Smart Gadgets | products.json + Firestore | OSS_022.jpg | ✅ matches product |
+| OSS_023 | PORTABLE FOLDING CHAIR | Folding Furniture | products.json + Firestore | OSS_023.jpg | ✅ matches product |
+| OSS_024 | SLIM FLOOR WIPER MOP WITH SILICONE BLADE & TELESCOPIC HANDLE | Multipurpose Cleaning Tool | products.json + Firestore | OSS_024.jpg | ✅ matches product |
+| OSS_025 | ANTI VIBRATION PADS | Smart Gadgets | products.json + Firestore | OSS_025.jpg | ✅ matches product |
+| OSS_026 | DANCING JELLYFISH TOY WITH MUSIC & MOVEMENT | Toys | products.json + Firestore | OSS_026.jpg | ✅ matches product |
+| OSS_027 | 360°METAL DESKTOP MOBILE PHONE STAND | Mobile Accessories | products.json + Firestore | OSS_027.jpg | ✅ matches product |
+| OSS_028 | ELECTRIC WATER HOT BAG | Health & Personal Care | products.json + Firestore | OSS_028.jpg | ✅ matches product |
+| OSS_029 | 2.5×6 NON ADJUSTABLE FOLDING BED | Folding Furniture | products.json + Firestore | OSS_029.jpg | ✅ matches product |
+| OSS_030 | 2.5×6 ADJUSTABLE FOLDING BED | Folding Furniture | products.json + Firestore | OSS_030.jpg | ✅ matches product |
+| OSS_031 | HOT & COLD 1000ML STEEL WATER BOTTLE | Water Bottle | products.json + Firestore | OSS_031.jpg | ✅ matches product |
+| OSS_032 | 2PCS HD VISION DRIVING GLASSES | Car Accessories | products.json + Firestore | OSS_032.jpg | ✅ matches product |
+| OSS_033 | PORTABLE 2 IN 1 CAMPING GAS STOVE | Travel Accessories | products.json + Firestore | OSS_033.jpg | ✅ matches product |
+| OSS_034 | ELECTRIC KAPOOR DANI WITH NIGHT LAMP | Gifts & Decor | products.json + Firestore | OSS_034.jpg | ✅ matches product |
+| OSS_035 | WATER-ABSORBING RUBBER DOORMAT | Home & Kitchen | products.json + Firestore | OSS_035.jpg | ✅ matches product |
+| OSS_036 | MAGIC PRACTICE COPYBOOK | Smart Stationery | products.json + Firestore | OSS_036.jpg | ✅ matches product |
+| OSS_037 | 40×40 MICROFIBER CLOTH (ONLY YELLOW) | Multipurpose Cleaning Cloth | products.json + Firestore | OSS_037.jpg | ✅ matches product |
+| OSS_038 | SELF ADHESIVE DOOR BOTTOM SEALING STRIP GUARD | Home & Kitchen | products.json + Firestore | OSS_038.jpg | ✅ matches product |
+| OSS_039 | COMPUTER SHORTCUT KEYBOARD MAT | Smart Gadgets | Firestore (added by admin) | external URL | ⚠️ needs review |
+| OSS_040 | SQUARE BATHROOM MAT | Home & Kitchen | Firestore (added by admin) | OSS_040.jpg | ✅ matches product |
 
 ## Categories created (16)
 
