@@ -84,6 +84,20 @@ export function invoiceTermsFor(invoice) {
   return invoice?.standardTerms || INVOICE_TERMS;
 }
 
+// Invoice dates as DD-MM-YYYY, shared by the PDF and the on-screen invoice.
+// Plain YYYY-MM-DD dates are reordered as text so they can never shift a day;
+// timestamps are read on the IST calendar day they happened.
+export function invoiceDate(value) {
+  if (!value) return "";
+  const plain = typeof value === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (plain) return `${plain[3]}-${plain[2]}-${plain[1]}`;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kolkata" })
+    .formatToParts(d).map(p => [p.type, p.value]));
+  return `${parts.day}-${parts.month}-${parts.year}`;
+}
+
 // Ship-to text only when it differs from billing. Website checkout stores the
 // billing address as the shipping address when "same as billing" is ticked.
 export function separateShippingAddress(customer = {}) {

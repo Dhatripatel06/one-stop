@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
 import { amountInWords, formatINR, stateName } from "../shared/pricing.js";
-import { INVOICE_THANK_YOU, PAYMENT_METHODS, balanceDueText, invoiceTermsFor, separateShippingAddress } from "../shared/constants.js";
+import { INVOICE_THANK_YOU, PAYMENT_METHODS, balanceDueText, invoiceDate, invoiceTermsFor, separateShippingAddress } from "../shared/constants.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
@@ -33,18 +33,6 @@ function money(paise) {
   return formatINR(paise ?? 0);
 }
 
-// DD-MM-YYYY. Plain YYYY-MM-DD dates are reordered as text so they can never
-// shift a day; timestamps are read on the IST calendar day they happened.
-export function invoiceDate(value) {
-  if (!value) return "";
-  const plain = typeof value === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (plain) return `${plain[3]}-${plain[2]}-${plain[1]}`;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kolkata" })
-    .formatToParts(d).map(p => [p.type, p.value]));
-  return `${parts.day}-${parts.month}-${parts.year}`;
-}
 
 function localLogo(logo) {
   if (!logo || /[\\/]/.test(logo) || !/\.(jpe?g|png)$/i.test(logo)) return null;

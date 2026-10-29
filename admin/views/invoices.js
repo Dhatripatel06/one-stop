@@ -7,7 +7,7 @@ import {
   paymentBadge, phoneDisplay, selectField, setBusy, showFormErrors, toRupeesInput, toast, toastError
 } from "../ui.js";
 import { amountInWords, stateName } from "../../shared/pricing.js";
-import { INVOICE_THANK_YOU, PAYMENT_METHODS, balanceDueText, invoiceTermsFor, isValidPhone, normalizePhone, separateShippingAddress } from "../../shared/constants.js";
+import { INVOICE_THANK_YOU, PAYMENT_METHODS, balanceDueText, invoiceDate, invoiceTermsFor, isValidPhone, normalizePhone, separateShippingAddress } from "../../shared/constants.js";
 
 export async function render(el, ctx) {
   const [id] = ctx.params;
@@ -44,7 +44,7 @@ export function invoiceHtml(inv) {
         </div>
         <div class="inv-title">
           <h1>${esc(inv.documentTitle)}</h1>
-          <dl><dt>Invoice No.</dt><dd>${esc(inv.invoiceNo)}</dd><dt>Invoice date</dt><dd>${date(inv.issuedAt)}</dd>${inv.orderNo ? `<dt>Order No.</dt><dd>${esc(inv.orderNo)}</dd>` : ""}</dl>
+          <dl><dt>Invoice No.</dt><dd>${esc(inv.invoiceNo)}</dd><dt>Invoice date</dt><dd>${invoiceDate(inv.issuedAt)}</dd>${inv.orderNo ? `<dt>Order No.</dt><dd>${esc(inv.orderNo)}</dd>` : ""}</dl>
         </div>
       </div>
       <div class="inv-parties">
@@ -64,13 +64,13 @@ export function invoiceHtml(inv) {
         </div>
       </div>
       <table class="inv-table">
-        <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th>${gst ? "<th>Taxable</th><th>GST</th><th>Tax</th>" : "<th>Discount</th>"}<th>Amount</th></tr></thead>
+        <thead><tr><th>#</th><th>Particulars</th><th>Rate</th><th>Qnt</th>${gst ? "<th>Taxable</th><th>GST</th><th>Tax</th>" : "<th>Discount</th>"}<th>Amount</th></tr></thead>
         <tbody>${lines.map((l, i) => `
           <tr>
             <td>${i + 1}</td>
             <td><strong>${esc(l.name)}</strong><div class="sub">${esc(l.sku)}${l.hsn ? ` · HSN ${esc(l.hsn)}` : ""}${gst && l.discount ? ` · Disc. ${money(l.discount)}` : ""}</div></td>
-            <td>${l.qty} ${esc(l.unit || "")}</td>
             <td>${money(!gst && l.listPrice > l.unitPrice ? l.listPrice : l.unitPrice)}</td>
+            <td>${l.qty} ${esc(l.unit || "")}</td>
             ${gst ? `<td>${money(l.taxable)}</td><td>${l.gstRate ?? 0}%</td><td>${money(l.taxAmount)}</td>` : `<td>${l.discount ? `-${money(l.discount)}` : "—"}</td>`}
             <td><strong>${money(l.total)}</strong></td>
           </tr>`).join("")}

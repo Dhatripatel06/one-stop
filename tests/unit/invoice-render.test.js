@@ -1,9 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { INVOICE_TERMS, balanceDueText, invoiceTermsFor, separateShippingAddress } from "../../shared/constants.js";
+import { INVOICE_TERMS, balanceDueText, invoiceDate, invoiceTermsFor, separateShippingAddress } from "../../shared/constants.js";
 import { formatINR } from "../../shared/pricing.js";
 import PDFDocument from "pdfkit";
-import { invoiceDate, renderInvoicePdf } from "../../server/invoice-pdf.js";
+import { renderInvoicePdf } from "../../server/invoice-pdf.js";
+import { invoiceHtml } from "../../admin/views/invoices.js";
 
 test("invoices issued before terms were stored still get the standard terms", () => {
   assert.equal(invoiceTermsFor({}), INVOICE_TERMS);
@@ -109,6 +110,25 @@ test("the PDF shows the stored issue date and payment dates as DD-MM-YYYY", asyn
   assert.equal(value.value, "29-10-2026", "uses issuedAt, not today");
   assert.ok(drawn.some(d => d.value.startsWith("29-10-2026  ·  ")), "payment line uses the same format");
 });
+
+for (const [label, taxSnapshot] of [["non-GST", { mode: "none" }], ["GST", { mode: "gst", interState: false }]]) {
+  test(`${label} on-screen invoice matches the PDF: Particulars | Rate | Qnt | Amount and DD-MM-YYYY`, () => {
+    const line = { ...base.lines[0], qty: 3, unitPrice: 2500, listPrice: 2500, total: 7500 };
+    const html = invoiceHtml({ ...base, taxSnapshot, issuedAt: "2026-10-28T19:00:00Z", lines: [line], status: "issued", balanceDue: 7500, source: "offline" });
+    const cells = tag => [...html.matchAll(new RegExp(`<${tag}>(.*?)</${tag}>`, "gs"))].map(m => m[1].replace(/<[^>]+>/g, "").trim());
+    const headings = cells("th").filter(h => ["#", "Particulars", "Rate", "Qnt", "Discount", "Taxable", "GST", "Tax", "Amount"].includes(h));
+    const order = HEADINGS.map(h => headings.indexOf(h));
+    assert.ok(order.every(i => i >= 0), "all headings present");
+    assert.deepEqual([...order].sort((a, b) => a - b), order, "headings in the required order");
+    assert.equal(headings.includes("Qty") || headings.includes("Item"), false);
+
+    const row = cells("td").slice(0, headings.length);
+    assert.equal(row[headings.indexOf("Rate")], "₹25.00");
+    assert.equal(row[headings.indexOf("Qnt")], "3 pcs");
+    assert.equal(row[headings.indexOf("Amount")], "₹75.00");
+    assert.match(html, /<dt>Invoice date<\/dt><dd>29-10-2026<\/dd>/);
+  });
+}
 
 test("cancelled invoices label the balance; amounts are unchanged", () => {
   const cancelled = { status: "cancelled", balanceDue: 0, amountPaid: 0, totals: { grandTotal: 7500 } };
